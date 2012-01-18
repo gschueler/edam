@@ -29,27 +29,29 @@ doNav=true
 tocAsIndex=true
 autoFiles=new HashSet()
 tempFiles=new HashSet()
-cleanUpAuto=false
+cleanUpAuto=true
 verbose=false
-options=[
+optionsDefaults=[
         chapterNumbers:'true',
         chapterTitle: 'Chapter',
         pageFileName:'${id}',
         cssFileName:'style.css',
-        indexFileName:'index',
+        indexFileName:'(index|readme)',
         indexFileOutputName:'index',
         tocFileName:'toc',
         tocTitle:'Table of Contents']
 optionDescs=[
-    chapterNumbers:'True/false, use chapter numbers in navigation: true',
-    chapterTitle:'Localized text to use for a chapter title: Chapter',
-    pageFileName: 'Template for generated filename for each page: ${id}. variables: ${index},${id}',
-    cssFileName:'File name of the css file to link in the HTML header: style.css',
-    indexFileName: 'File name base expected as index markdown file: index',
-    indexFileOutputName: 'File name base used as index HTML file: index',
-    tocFileName: 'File name expected/generated as table-of-contents file: toc',
-    tocTitle: 'Localized text to use for table of contents title: Table of Contents'
+    chapterNumbers:'True/false, use chapter numbers in navigation.',
+    chapterTitle:'Localized text to use for a chapter title.',
+    pageFileName: 'Template for generated filename for each page, variables: `${index}`,`${id}`.',
+    cssFileName:'File name of the css file to link in the HTML header.',
+    indexFileName: 'File name base expected as index markdown file.',
+    indexFileOutputName: 'File name base used as index HTML file.',
+    tocFileName: 'File name expected/generated as table-of-contents file.',
+    tocTitle: 'Localized text to use for table of contents title.'
     ]
+    
+options = new HashMap(optionsDefaults)
 
 def readTitle(File file){
     def count=0
@@ -394,10 +396,6 @@ while(x<args.length){
             docsdir=new File(args[x+1])
             x++
             break
-        case '--css':
-            options.cssFileName=args[x+1]
-            x++
-            break
         case '-t':
             tdir = new File(args[x+1])
             x++
@@ -415,8 +413,8 @@ while(x<args.length){
         case '--no-nav':
             doNav=false
             break
-        case '--clean':
-            cleanUpAuto=true
+        case '--no-auto-clean':
+            cleanUpAuto=false
             break
         case '--verbose':
             verbose=true
@@ -435,12 +433,49 @@ while(x<args.length){
     }
     x++
 }
-if(!docsdir || help){
-    println "edam.groovy [-h/--help] -d <basedir> [-t <templatesdir>] [-o <outputdir>] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]"
-    println "\t[-O option=value [ -O ... ] ]"
-    println "\tOptions:"
+if(!docsdir){
+    docsdir = new File(System.getProperty("user.dir"))
+}
+if(help){
+    println "% Usage\n"
+    println "    edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]"
+    println "    [-O option=value [ -O ... ] ]\n"
+    println '''## Arguments
+
+`-h/--help`
+:   Show this help text.
+
+`-d <basedir>`
+:   The base directory containing the docs to convert. Defaults to the current directory.
+
+`-t <templatesdir>`
+:   The directory containing templates. Defaults to basedir/templates.
+
+`-o <outputdir>`
+:   The directory to write HTML files to. Defaults to the basedir.
+
+`--no-toc`
+:   Don't include the Table of Contents.
+
+`--no-nav`
+:   Don't include navigation links on each page.
+
+`--verbose`
+:   Be verbose about running pandoc
+
+`--no-auto-clean`
+:   Automatically clean up any generated files. Otherwise templates/toc.txt will be created.
+
+`--separate-toc`
+:   Put the Table of Contents on a separate page, instead of at the end of the index page.
+
+`-O option=value`
+
+:   Override an option value. Options are shown below.\n'''
+    println "## Options\n"
+    println "Options define the conventional defaults used for generating output.  You can override any value with `-O option=value` on the commandline.\n"
     options.keySet().each{
-        println "\t${it} = ${optionDescs[it]}"
+        println "${it}\n:    ${optionDescs[it]} Default: `${optionsDefaults[it]}`\n"
     }
     return 1
 }
