@@ -67,7 +67,7 @@ def readTitle(File file){
     return title
 }
 def titleToIdentifier(String title){
-    def str=title
+    def str=title.trim()
     str= str.replaceAll(/['":\/<>,;\[\]\{\}\|\\!@#\$%\^&\*\(\)\+~`\?=]/,'')
     str= str.replaceAll(/[\s]/,'-')
     str = str.toLowerCase()
@@ -202,7 +202,6 @@ defaultTemplates=[before:'''<div id="docbody">
 ''',html:'''<!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="generator" content="pandoc" />
@@ -371,7 +370,7 @@ def generateAll(toc,templates,File dir, File outdir){
             }
             pargs.addAll(['-B',navfile,'-A',navfileB])
         }
-        pargs.addAll(['-A',templates.after,'-o',new File(outdir,titem.outfile).absolutePath,'-s',"--css=${options.cssFileName}"])
+        pargs.addAll(['-A',templates.after,'-o',new File(outdir,titem.outfile).absolutePath,'-s',"--css=${options.cssFileName}","--template=${templates.html.absolutePath}"])
         if(titem.index>0){
             pargs<<"--toc"
         }
