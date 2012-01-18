@@ -27,8 +27,6 @@ copyOriginal=false
 doToc=true
 doNav=true
 tocAsIndex=true
-autoFiles=new HashSet()
-tempFiles=new HashSet()
 cleanUpAuto=true
 verbose=false
 optionsDefaults=[
@@ -39,7 +37,8 @@ optionsDefaults=[
         indexFileName:'(index|readme)',
         indexFileOutputName:'index',
         tocFileName:'toc',
-        tocTitle:'Table of Contents']
+        tocTitle:'Table of Contents',
+        pandocCmd:"pandoc"]
 optionDescs=[
     chapterNumbers:'True/false, use chapter numbers in navigation.',
     chapterTitle:'Localized text to use for a chapter title.',
@@ -48,7 +47,8 @@ optionDescs=[
     indexFileName: 'File name base expected as index markdown file.',
     indexFileOutputName: 'File name base used as index HTML file.',
     tocFileName: 'File name expected/generated as table-of-contents file.',
-    tocTitle: 'Localized text to use for table of contents title.'
+    tocTitle: 'Localized text to use for table of contents title.',
+    pandocCmd: 'Pandoc command to run.'
     ]
     
 options = new HashMap(optionsDefaults)
@@ -74,6 +74,14 @@ def titleToIdentifier(String title){
     str = str.replaceAll(/^[^a-z]+/,'')
     
     return str
+}
+def addTempFile(File file){
+    file.deleteOnExit()
+}
+def addAutoFile(File file){
+    if(cleanUpAuto){
+        file.deleteOnExit()
+    }
 }
 def readIndexFile(File dir){
     def nameRegex="^"+options.indexFileName+'\\.(md|txt)$'
@@ -135,7 +143,7 @@ def getToc(File dir){
     def readtoc=readToc(dir)
     def toc=[]
     if(!tocfile.exists()){
-        autoFiles<<tocfile
+        addAutoFile tocfile
         //create toc.conf
         def ndx=1
         tocfile.withWriter { out ->
@@ -171,7 +179,7 @@ def getToc(File dir){
 def createTocMdFile(File dir,toc,title,content=null){
     def tocout=new File(dir,"toc.txt")
     if(!tocout.exists()){
-        autoFiles<<tocout
+        addAutoFile tocout
     }
     tocout.withWriter{writer->
         
@@ -181,10 +189,11 @@ def createTocMdFile(File dir,toc,title,content=null){
         }else{
             writer<<"% ${title}\n\n"
         }
-        
-        writer<<"## ${options.tocTitle}\n\n"
-        toc.each{titem->
-            writer<<"${titem.index}. [${titem.title}](${titem.outfile})\n"
+        if(toc){    
+            writer<<"## ${options.tocTitle}\n\n"
+            toc.each{titem->
+                writer<<"${titem.index}. [${titem.title}](${titem.outfile})\n"
+            }
         }
     }
 }
@@ -266,9 +275,9 @@ def getTemplates(File tdir){
     }
     templates.each{k,v->
         if(!v.exists()){
-            autoFiles<<v
+            addAutoFile v
             if(!v.parentFile.exists()){
-                autoFiles<<v.parentFile
+                addAutoFile v.parentFile
             }
             v.parentFile.mkdirs()
             v.withWriter{w->w.write(defaultTemplates[k])}
@@ -277,10 +286,9 @@ def getTemplates(File tdir){
     return templates
 }
 
-pandocCmd="pandoc"
 def runPandoc(List longparams,file){
     def panargs = [] 
-    panargs << pandocCmd
+    panargs << options.pandocCmd
     panargs.addAll longparams
     panargs.add file
     if(verbose){
@@ -295,6 +303,11 @@ def generateAll(toc,templates,File dir, File outdir){
         ndxtoc<<[index:0,title:options.tocTitle,file:new File(dir,'toc.txt'),outfile:tocAsIndex?"${options.indexFileOutputName}.html":'toc.html']
     }
     def index=readIndexFile(dir)
+    if(!index){
+        index=toc.remove(0)
+        index.index=0
+        toc.each{it.index=it.index-1}
+    }
     if(index && !tocAsIndex){
         ndxtoc = [index]+ndxtoc
     }else if(index && tocAsIndex && doToc){
@@ -316,8 +329,8 @@ def generateAll(toc,templates,File dir, File outdir){
         }
     }
     
-    tempFiles<<navfile
-    tempFiles<<navfileB
+    addTempFile navfile
+    addTempFile navfileB
     allpages.eachWithIndex{titem,x->
         def pargs=['-B',templates.before]
         if(doNav){
@@ -495,7 +508,3 @@ if(verbose){
     println "running generateAll with options: ${options}"
 }
 generateAll(toc,templates,docsdir,outputdir)
-tempFiles.each{f-> f.deleteOnExit()}
-if(cleanUpAuto){
-    autoFiles.each{f->f.deleteOnExit()}
-}

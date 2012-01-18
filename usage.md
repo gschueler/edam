@@ -58,6 +58,9 @@ tocTitle
 indexFileName
 :    File name base expected as index markdown file. Default: `(index|readme)`
 
+pandocCmd
+:    Pandoc command to run. Default: `pandoc`
+
 indexFileOutputName
 :    File name base used as index HTML file. Default: `index`
 
