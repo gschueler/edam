@@ -1,69 +1,107 @@
 % Usage
 
-    edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
-    [-O option=value [ -O ... ] ]
+    edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>]
+        [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
+        [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables <propertiesfile> ]
+        [-x [ extra pandoc args .. ] ]
 
 ## Arguments
 
+
 `-h/--help`
-:   Show this help text.
+:    Show this help text
 
 `-d <basedir>`
-:   The base directory containing the docs to convert. Defaults to the current directory.
+:    The base directory containing the docs to convert. Defaults to the current directory.
 
 `-t <templatesdir>`
-:   The directory containing templates. Defaults to basedir/templates.
+:    The directory containing templates. Defaults to basedir/templates.
 
 `-o <outputdir>`
-:   The directory to write HTML files to. Defaults to the basedir.
+:    The directory to write HTML files to. Defaults to the basedir.
 
 `--no-toc`
-:   Don't include the Table of Contents.
+:    Don't include the Table of Contents.
 
 `--no-nav`
-:   Don't include navigation links on each page.
+:    Don't include navigation links on each page.
 
 `--verbose`
-:   Be verbose about running pandoc
+:    Be verbose about running pandoc.
 
 `--no-auto-clean`
-:   Automatically clean up any generated files. Otherwise templates/toc.txt will be created.
+:    Automatically clean up any generated files. Otherwise templates/toc.txt will be created.
 
 `--separate-toc`
-:   Put the Table of Contents on a separate page, instead of at the end of the index page.
+:    Put the Table of Contents on a separate page, instead of at the end of the index page.
 
 `-O option=value`
+:    Override an option value. Options are shown below.
 
-:   Override an option value. Options are shown below.
+`-V var=value`
+:    Define a variable to expand within templates and markdown content.
+
+`--variables <propertiesfile>`
+:    Load variables from a properties file.
 
 ## Options
 
 Options define the conventional defaults used for generating output.  You can override any value with `-O option=value` on the commandline.
 
-tocFileName
-:    File name expected/generated as table-of-contents file. Default: `toc`
+`singleIndex`
+:    true/false, if only a single markdown file, use it as the index HTML file. Default: `true`
 
-chapterTitle
-:    Localized text to use for a chapter title. Default: `Chapter`
+`chapterNumbers`
+:    true/false, use chapter numbers in navigation. Default: `true`
 
-pageFileName
-:    Template for generated filename for each page, variables: `${index}`,`${id}`. Default: `${id}`
+`chapterTitle`
+:    Localized text to use for a Chapter title. Default: `Chapter`
 
-cssFileName
+`sectionTitle`
+:    Localized text to use for a Section title Default: `Section`
+
+`pageFileName`
+:    Template for generated filename for each page, variables: `${index}`,`${title}`,`${name}`. Default: `${name}`
+
+`cssFileName`
 :    File name of the css file to link in the HTML header. Default: `style.css`
 
-tocTitle
-:    Localized text to use for table of contents title. Default: `Table of Contents`
-
-indexFileName
+`indexFileName`
 :    File name base expected as index markdown file. Default: `(index|readme)`
 
-pandocCmd
-:    Pandoc command to run. Default: `pandoc`
-
-indexFileOutputName
+`indexFileOutputName`
 :    File name base used as index HTML file. Default: `index`
 
-chapterNumbers
-:    True/false, use chapter numbers in navigation. Default: `true`
+`tocFileName`
+:    File name expected/generated as table-of-contents file. Default: `toc`
+
+`tocTitle`
+:    Localized text to use for table of contents title. Default: `Table of Contents`
+
+`subTocTitle`
+:    Localized text to use for subdirectory sections table of contents title. Default: `Sections`
+
+`pandocCmd`
+:    Pandoc command to run. Default: `pandoc`
+
+`tokenStart`
+:    Variable expansion start token. Default: `${`
+
+`tokenEnd`
+:    Variable expansion end token. Default: `}`
+
+`singleOutputFile`
+:    true/false, combine all files into one output file. Default: `false`
+
+`pageLinkTitle`
+:    Template for title for links to the page, variables: `${index}`,`${title}`,`${name}`. Default: `${title}`
+
+`subLinkTitle`
+:    Template for title for links to a sub dir section, variables: `${sectionTitle}`, `${title}`, `${index}`, `${name}` Default: `${title}`
+
+`recurseDirPattern`
+:    Regex to match dirs to include in recursive generation. Default: `.*`
+
+`recurseDepth`
+:    Number of dirs to recurse into. -1 means no limit. Default: `0`
 

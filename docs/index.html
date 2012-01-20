@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edam - easy doc generation with pandoc</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Greg Schueler" />
+  <meta name="date" content="1/16/2012" />
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="docbody">
+
+<nav class="page top">
+    <ul>
+        <li class="current"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        
+        
+        <li class="next"><a href="usage.html">Chapter 1: Usage</a></li>
+    </ul>
+</nav>
+<h1 class="title">Edam - easy doc generation with pandoc</h1>
+<p
+>Edam is a simple <a href="http://johnmacfarlane.net/pandoc/"
+  >pandoc</a
+  > wrapper written in Groovy to help generate documentation from Markdown text files.</p
+><p
+>It is completely inspired by <a href="http://www.unexpected-vortices.com/sw/gouda/docs/"
+  >Gouda</a
+  >, which is a python script.</p
+><p
+>All of the docs in the docs/ dir were generated using this command:</p
+><pre
+><code
+  >edam.groovy -o docs
+</code
+  ></pre
+><h2 id="behavior"
+>Behavior</h2
+><p
+>The purpose is to simply generate a set of HTML pages, with cross-navigation links, based on a set of Markdown text files in a directory.</p
+><p
+>Each Markdown file (suffix <code
+  >.md</code
+  > or <code
+  >.txt</code
+  >) in the basedir is generated into a HTML file.</p
+><p
+><strong
+  >Special files</strong
+  >:</p
+><dl
+><dt
+  >Index file</dt
+  ><dd
+  ><p
+    >The index file is considered the front page, and can be named <code
+      >index</code
+      > or <code
+      >readme</code
+      >. If there is a single document it is considered the index file.</p
+    ></dd
+  ><dt
+  ><code
+    >toc.conf</code
+    ></dt
+  ><dd
+  ><p
+    >This uses a simple non-markdown text format to list the source files in the order they should appear in the generated HTML docs. This file will be generated if it does not exist. You can change the order of pages in the <code
+      >toc.conf</code
+      >, but the contents must match the source files in the directory, otherwise a warning will be printed (e.g. file is added or removed).</p
+    ></dd
+  ><dt
+  ><code
+    >toc.txt</code
+    ></dt
+  ><dd
+  ><p
+    >The Table of Contents source file links to all the other non-special pages. This file will be auto-generated. The markdown contents of the toc.txt are placed at the end of the <code
+      >index</code
+      > page, or in its own page with the <code
+      >--separate-toc</code
+      > flag.</p
+    ></dd
+  ></dl
+><p
+><strong
+  >Document files</strong
+  ></p
+><p
+>Each markdown file that is not a special file is a Document file.</p
+><h2 id="document-titles"
+>Document titles</h2
+><p
+>Each document <em
+  >should</em
+  > have a Title specified in the pandoc metadata syntax, as the first line in the file:</p
+><pre
+><code
+  >% Title
+</code
+  ></pre
+><p
+>If not specified, then the file name will be used as the title.</p
+><p
+>The Title is used in linking to the document, and can be used in the output file name.</p
+><h2 id="document-naming"
+>Document naming</h2
+><p
+>Each markdown file will generate a HTML file with the same base name.</p
+><p
+>Any &quot;index&quot; file will generate &quot;index.html&quot; (whichever basename it had). Override the index output file name with the <code
+  >indexOutputFileName</code
+  > option.</p
+><p
+>The HTML file name for Document files can be changed by the <code
+  >pageFileName</code
+  > option. The content of this option can use <code
+  >${index}</code
+  >, <code
+  >${name}</code
+  > or <code
+  >${title}</code
+  > in combination to alter the generated filename. Example: <code
+  >${title}-${index}</code
+  >, could produce <code
+  >all-about-flamingos-12.html</code
+  >.</p
+><h2 id="document-structure"
+>Document structure</h2
+><p
+>To make the generated HTML as simple as possible there are a few different modes, based on the number and names of the documents in your directory.</p
+><p
+><strong
+  >One Document Mode</strong
+  ></p
+><p
+>In this mode, the document is generated as <code
+  >index.html</code
+  >. Turn it off with the <code
+  >singleIndex=false</code
+  > option and it will be named based on the <code
+  >pageFileName</code
+  >.</p
+><p
+><strong
+  >One Chapter Mode</strong
+  ></p
+><p
+>If an index and one chapter file exist, then no TOC will be generated.</p
+><p
+>Link sequence:</p
+><ol style="list-style-type: decimal;"
+><li
+  >Index</li
+  ><li
+  >Chapter 1</li
+  ></ol
+><p
+><strong
+  >Multiple Chapter Mode</strong
+  ></p
+><p
+>Multiple chapters will generate a TOC. If an index file exists, then the TOC will be placed at the bottom of the Index content. If no index file exists it will simply be the only Index page content.</p
+><p
+>Link sequence:</p
+><ol style="list-style-type: decimal;"
+><li
+  >Index + TOC</li
+  ><li
+  >Chapters ...</li
+  ></ol
+><p
+><strong
+  >Separate TOC Chapter Mode</strong
+  ></p
+><p
+>If <code
+  >--separate-toc</code
+  > is used, and an Index page exists, the TOC and Index are generated as separate pages:</p
+><p
+>Link sequence:</p
+><ol style="list-style-type: decimal;"
+><li
+  >Index</li
+  ><li
+  >Toc page</li
+  ><li
+  >Chapters</li
+  ></ol
+><h2 id="navigation"
+>Navigation</h2
+><p
+>If more than one output page is generated, then the navigation links are included at the top and bottom of each page. Depending on where the page is in the sequence, and the type of page, some navigation links may or may not be included. The nav template can customize this behavior, or you can use CSS to hide/reposition the navigation links.</p
+><p
+>Navigation links:</p
+><ul
+><li
+  >Current page - included on every page.</li
+  ><li
+  >TOC/Index page - included on every page except the TOC page.</li
+  ><li
+  >Next page - included on every page except the first</li
+  ><li
+  >Previous page - included on every document page except the first document.</li
+  ></ul
+><h2 id="auto-clean"
+>Auto-clean</h2
+><p
+>Edam uses a few template and intermediate files when generating the appropriate source to feed to pandoc. By default all of the template and intermediate files are &quot;auto-cleaned&quot;, that is, deleted, after use. However, you may want to use the <code
+  >--no-auto-clean</code
+  > flag once to generate the <code
+  >toc.conf</code
+  > and/or template files, and then customize them to your liking. They won't be overwritten if they already exist.</p
+><p
+>A typical use might be: use <code
+  >--no-auto-clean</code
+  >, customize one or two templates, and remove the rest of the generated files. Then run edam as normal and the other files will be autocleaned to keep your sourcebase clean.</p
+><h2 id="templates"
+>Templates</h2
+><p
+>Edam includes some template files used in the final HTML output. The three HTML document templates (html.template, before.template, and after.template) are fed directly to pandoc, so the variable subsitution described <a href="http://johnmacfarlane.net/pandoc/README.html#templates"
+  >here</a
+  > is applicable.</p
+><dl
+><dt
+  ><code
+    >html.template</code
+    ></dt
+  ><dd
+  ><p
+    >The template for each HTML page.</p
+    ></dd
+  ><dt
+  ><code
+    >before.template</code
+    ></dt
+  ><dd
+  ><p
+    >Placed before the navigation and content of each page.</p
+    ></dd
+  ><dt
+  ><code
+    >after.template</code
+    ></dt
+  ><dd
+  ><p
+    >Placed after the content and bottom navigation of each page.</p
+    ></dd
+  ></dl
+><p
+>The navigation template is used internally by edam to produce each navigation content for each page. It uses the same variable substitution syntax, but with a specific set of internal variables.</p
+><dl
+><dt
+  ><code
+    >nav.template</code
+    ></dt
+  ><dd
+  >Nav template for the toc/index page.</dd
+  ></dl
+><h3 id="nav-variables"
+>Nav Variables</h3
+><p
+>The default nav template shows the possible nav template variables:</p
+><pre
+><code
+  >&lt;nav class=&quot;page $navclass$&quot;&gt;
+    &lt;ul&gt;
+        &lt;li class=&quot;current&quot;&gt;&lt;a href=&quot;$currentpagelink$&quot;&gt;$currentpage$&lt;/a&gt;&lt;/li&gt;
+        $if(tocpage)$&lt;li class=&quot;toc&quot;&gt;&lt;a href=&quot;$tocpagelink$&quot;&gt;$tocpage$&lt;/a&gt;&lt;/li&gt;$endif$
+        $if(prevpage)$&lt;li class=&quot;prev&quot;&gt;&lt;a href=&quot;$prevpagelink$&quot;&gt;$prevpage$&lt;/a&gt;&lt;/li&gt;$endif$
+        $if(nextpage)$&lt;li class=&quot;next&quot;&gt;&lt;a href=&quot;$nextpagelink$&quot;&gt;$nextpage$&lt;/a&gt;&lt;/li&gt;$endif$
+    &lt;/ul&gt;
+&lt;/nav&gt;
+</code
+  ></pre
+><dl
+><dt
+  ><code
+    >$navclass$</code
+    ></dt
+  ><dd
+  ><p
+    ><code
+      >top</code
+      > or <code
+      >bottom</code
+      >, depending on which part of the page it is included on.</p
+    ></dd
+  ><dt
+  ><code
+    >$*page$</code
+    ></dt
+  ><dd
+  ><p
+    >The title of the specified page: toc,prev,next, current.</p
+    ></dd
+  ><dt
+  ><code
+    >$*pagelink$</code
+    ></dt
+  ><dd
+  ><p
+    >The URL to the specified page: toc,prev,next,current.</p
+    ></dd
+  ></dl
+><p
+>The content between <code
+  >$if(*page)$</code
+  > and <code
+  >$endif</code
+  > will be included only if the specified page link should be shown (as described in the <a href="#navigation"
+  >Navigation</a
+  > section).</p
+><h2 id="variable-expansion"
+>Variable expansion</h2
+><p
+>To make it easier to templatize your Markdown and template files, edam supports a method of variable expansion within all files, unlike pandoc which only supports the main document template.</p
+><p
+>Specify variables using the <code
+  >-V var=value</code
+  > flags, or <code
+  >--variables &lt;propertiesfile&gt;</code
+  > to include a Java Properties formatted set of variables.</p
+><p
+>By default each variable can be put in templates or Markdown files in the form: <code
+  >${variablename}</code
+  >. The begin/end tokens for variables can be overridden with the options <code
+  >tokenStart</code
+  > and <code
+  >tokenEnd</code
+  >.</p
+>
+
+<nav class="page bottom">
+    <ul>
+        <li class="current"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        
+        
+        <li class="next"><a href="usage.html">Chapter 1: Usage</a></li>
+    </ul>
+</nav>
+</div>
+</body>
+</html>

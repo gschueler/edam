@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Usage</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+<div id="docbody">
+
+<nav class="page top">
+    <ul>
+        <li class="current"><a href="usage.html">Chapter 1: Usage</a></li>
+        <li class="toc"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        
+        
+    </ul>
+</nav>
+<h1 class="title">Usage</h1>
+<div id="TOC"
+><ul
+  ><li
+    ><a href="#arguments"
+      >Arguments</a
+      ></li
+    ><li
+    ><a href="#options"
+      >Options</a
+      ></li
+    ></ul
+  ></div
+>
+<pre
+><code
+  >edam.groovy [-h/--help] [-d &lt;basedir&gt;] [-t &lt;templatesdir&gt;] [-o &lt;outputdir&gt;]
+    [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
+    [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables &lt;propertiesfile&gt; ]
+    [-x [ extra pandoc args .. ] ]
+</code
+  ></pre
+><h2 id="arguments"
+><a href="#TOC"
+  >Arguments</a
+  ></h2
+><dl
+><dt
+  ><code
+    >-h/--help</code
+    ></dt
+  ><dd
+  ><p
+    >Show this help text</p
+    ></dd
+  ><dt
+  ><code
+    >-d &lt;basedir&gt;</code
+    ></dt
+  ><dd
+  ><p
+    >The base directory containing the docs to convert. Defaults to the current directory.</p
+    ></dd
+  ><dt
+  ><code
+    >-t &lt;templatesdir&gt;</code
+    ></dt
+  ><dd
+  ><p
+    >The directory containing templates. Defaults to basedir/templates.</p
+    ></dd
+  ><dt
+  ><code
+    >-o &lt;outputdir&gt;</code
+    ></dt
+  ><dd
+  ><p
+    >The directory to write HTML files to. Defaults to the basedir.</p
+    ></dd
+  ><dt
+  ><code
+    >--no-toc</code
+    ></dt
+  ><dd
+  ><p
+    >Don't include the Table of Contents.</p
+    ></dd
+  ><dt
+  ><code
+    >--no-nav</code
+    ></dt
+  ><dd
+  ><p
+    >Don't include navigation links on each page.</p
+    ></dd
+  ><dt
+  ><code
+    >--verbose</code
+    ></dt
+  ><dd
+  ><p
+    >Be verbose about running pandoc.</p
+    ></dd
+  ><dt
+  ><code
+    >--no-auto-clean</code
+    ></dt
+  ><dd
+  ><p
+    >Automatically clean up any generated files. Otherwise templates/toc.txt will be created.</p
+    ></dd
+  ><dt
+  ><code
+    >--separate-toc</code
+    ></dt
+  ><dd
+  ><p
+    >Put the Table of Contents on a separate page, instead of at the end of the index page.</p
+    ></dd
+  ><dt
+  ><code
+    >-O option=value</code
+    ></dt
+  ><dd
+  ><p
+    >Override an option value. Options are shown below.</p
+    ></dd
+  ><dt
+  ><code
+    >-V var=value</code
+    ></dt
+  ><dd
+  ><p
+    >Define a variable to expand within templates and markdown content.</p
+    ></dd
+  ><dt
+  ><code
+    >--variables &lt;propertiesfile&gt;</code
+    ></dt
+  ><dd
+  ><p
+    >Load variables from a properties file.</p
+    ></dd
+  ></dl
+><h2 id="options"
+><a href="#TOC"
+  >Options</a
+  ></h2
+><p
+>Options define the conventional defaults used for generating output. You can override any value with <code
+  >-O option=value</code
+  > on the commandline.</p
+><dl
+><dt
+  ><code
+    >singleIndex</code
+    ></dt
+  ><dd
+  ><p
+    >true/false, if only a single markdown file, use it as the index HTML file. Default: <code
+      >true</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >chapterNumbers</code
+    ></dt
+  ><dd
+  ><p
+    >true/false, use chapter numbers in navigation. Default: <code
+      >true</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >chapterTitle</code
+    ></dt
+  ><dd
+  ><p
+    >Localized text to use for a Chapter title. Default: <code
+      >Chapter</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >sectionTitle</code
+    ></dt
+  ><dd
+  ><p
+    >Localized text to use for a Section title Default: <code
+      >Section</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >pageFileName</code
+    ></dt
+  ><dd
+  ><p
+    >Template for generated filename for each page, variables: <code
+      >${index}</code
+      >,<code
+      >${title}</code
+      >,<code
+      >${name}</code
+      >. Default: <code
+      >${name}</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >cssFileName</code
+    ></dt
+  ><dd
+  ><p
+    >File name of the css file to link in the HTML header. Default: <code
+      >style.css</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >indexFileName</code
+    ></dt
+  ><dd
+  ><p
+    >File name base expected as index markdown file. Default: <code
+      >(index|readme)</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >indexFileOutputName</code
+    ></dt
+  ><dd
+  ><p
+    >File name base used as index HTML file. Default: <code
+      >index</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >tocFileName</code
+    ></dt
+  ><dd
+  ><p
+    >File name expected/generated as table-of-contents file. Default: <code
+      >toc</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >tocTitle</code
+    ></dt
+  ><dd
+  ><p
+    >Localized text to use for table of contents title. Default: <code
+      >Table of Contents</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >subTocTitle</code
+    ></dt
+  ><dd
+  ><p
+    >Localized text to use for subdirectory sections table of contents title. Default: <code
+      >Sections</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >pandocCmd</code
+    ></dt
+  ><dd
+  ><p
+    >Pandoc command to run. Default: <code
+      >pandoc</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >tokenStart</code
+    ></dt
+  ><dd
+  ><p
+    >Variable expansion start token. Default: <code
+      >${</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >tokenEnd</code
+    ></dt
+  ><dd
+  ><p
+    >Variable expansion end token. Default: <code
+      >}</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >singleOutputFile</code
+    ></dt
+  ><dd
+  ><p
+    >true/false, combine all files into one output file. Default: <code
+      >false</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >pageLinkTitle</code
+    ></dt
+  ><dd
+  ><p
+    >Template for title for links to the page, variables: <code
+      >${index}</code
+      >,<code
+      >${title}</code
+      >,<code
+      >${name}</code
+      >. Default: <code
+      >${title}</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >subLinkTitle</code
+    ></dt
+  ><dd
+  ><p
+    >Template for title for links to a sub dir section, variables: <code
+      >${sectionTitle}</code
+      >, <code
+      >${title}</code
+      >, <code
+      >${index}</code
+      >, <code
+      >${name}</code
+      > Default: <code
+      >${title}</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >recurseDirPattern</code
+    ></dt
+  ><dd
+  ><p
+    >Regex to match dirs to include in recursive generation. Default: <code
+      >.*</code
+      ></p
+    ></dd
+  ><dt
+  ><code
+    >recurseDepth</code
+    ></dt
+  ><dd
+  ><p
+    >Number of dirs to recurse into. -1 means no limit. Default: <code
+      >0</code
+      ></p
+    ></dd
+  ></dl
+>
+
+<nav class="page bottom">
+    <ul>
+        <li class="current"><a href="usage.html">Chapter 1: Usage</a></li>
+        <li class="toc"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        
+        
+    </ul>
+</nav>
+</div>
+</body>
+</html>
