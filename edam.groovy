@@ -20,6 +20,8 @@
 * edam.groovy - a gouda-like wrapper for pandoc in groovy
 * inspired by gouda: http://www.unexpected-vortices.com/sw/gouda/docs/
 */
+import static java.util.regex.Pattern.quote
+import static java.util.regex.Pattern.compile
 
 pdocextra=[]
 help=false
@@ -32,128 +34,138 @@ cleanUpAuto=true
 verbose=false
 pagevars=[:]
 optionsDefaults=[
-        singleIndex:'true',
-        chapterNumbers:'true',
-        chapterTitle: 'Chapter',
-        pageFileName:'${name}',
-        cssFileName:'style.css',
-        indexFileName:'(index|readme)',
-        indexFileOutputName:'index',
-        tocFileName:'toc',
-        tocTitle:'Table of Contents',
-        pandocCmd:"pandoc",
-        tokenStart:'${',
-        tokenEnd:'}',
-        singleOutputFile:'false',
-        pageLinkTitle: '${title}'
-        ]
+    singleIndex:'true',
+    chapterNumbers:'true',
+    chapterTitle: 'Chapter',
+    sectionTitle: 'Section',
+    pageFileName:'${name}',
+    cssFileName:'style.css',
+    indexFileName:'(index|readme)',
+    indexFileOutputName:'index',
+    tocFileName:'toc',
+    tocTitle:'Table of Contents',
+    subTocTitle: 'Sections',
+    pandocCmd:"pandoc",
+    tokenStart:'${',
+    tokenEnd:'}',
+    singleOutputFile:'false',
+    pageLinkTitle: '${title}',
+    subLinkTitle: '${title}',
+    recurseDirPattern: '.*',
+    recurseDepth:'0'
+    ]
 optionDescs=[
-        singleIndex: 'true/false, if only a single markdown file, use it as the index HTML file.',
+    singleIndex: 'true/false, if only a single markdown file, use it as the index HTML file.',
     chapterNumbers:'true/false, use chapter numbers in navigation.',
-    chapterTitle:'Localized text to use for a chapter title.',
+    chapterTitle:'Localized text to use for a Chapter title.',
+    sectionTitle: 'Localized text to use for a Section title',
     pageFileName: 'Template for generated filename for each page, variables: `${index}`,`${title}`,`${name}`.',
     cssFileName:'File name of the css file to link in the HTML header.',
     indexFileName: 'File name base expected as index markdown file.',
     indexFileOutputName: 'File name base used as index HTML file.',
     tocFileName: 'File name expected/generated as table-of-contents file.',
     tocTitle: 'Localized text to use for table of contents title.',
+    subTocTitle: 'Localized text to use for subdirectory sections table of contents title.',
     pandocCmd: 'Pandoc command to run.',
     tokenStart:'Variable expansion start token.',
     tokenEnd:'Variable expansion end token.',
     singleOutputFile:'true/false, combine all files into one output file.',
     pageLinkTitle: 'Template for title for links to the page, variables: `${index}`,`${title}`,`${name}`.',
+    subLinkTitle: 'Template for title for links to a sub dir section, variables: `${sectionTitle}`, `${title}`, `${index}`, `${name}`',
+    recurseDirPattern: 'Regex to match dirs to include in recursive generation.',
+    recurseDepth: 'Number of dirs to recurse into. -1 means no limit.'
     ]
     
 options = new HashMap(optionsDefaults)
 
-def readTitle(File file){
-    def count=0
-    def title=null
-    if(file && file.exists()){
-        file.withReader { reader ->
-            def match=reader.readLine()=~/^%\s+(.+)$/
-            if(match.matches()){
-                title=match.group(1)
+File.metaClass{
+    getBasename = { delegate.name.replaceAll(/\.([^.]+)$/,'') }
+    getTitle = {
+        def title
+        if(delegate?.exists()){
+            delegate.withReader { reader ->
+                def match=reader.readLine()=~/^[%#]\s+(.+)$/
+                if(match.matches()){
+                    title=match.group(1).trim()
+                }
+            }
+            if(!title){
+                title = delegate.basename.replaceAll(/[_\.-]/,' ').replaceAll(/^(.)/,{a,m->m.toUpperCase()})
             }
         }
+        return title
     }
-    return title
 }
+String.metaClass{
+    replaceTokens = {Map params,String tokenStart='${', String tokenEnd='}'->
+        delegate.replaceAll('('+quote(tokenStart)+'([a-zA-Z_0-9.-]+?)'+quote(tokenEnd)+')',{all,m1,m2->
+                null!=params[2]?params[m2]:m1
+        })
+    }
+}
+
 def titleToIdentifier(String title){
     def str=title.trim()
     str= str.replaceAll(/['":\/<>,;\[\]\{\}\|\\!@#\$%\^&\*\(\)\+~`\?=]/,'')
     str= str.replaceAll(/[\s]/,'-')
     str = str.toLowerCase()
     str = str.replaceAll(/^[^a-z]+/,'')
-    
     return str
 }
-def addTempFile(File file){
-    file.deleteOnExit()
-    file
-}
-def addAutoFile(File file){
-    if(cleanUpAuto){
+def addTempFile(File file,boolean auto=false){
+    if(!auto || cleanUpAuto){
         file.deleteOnExit()
     }
-    file
+    return file
 }
 def writeTempFile(String content){
     def tfile = addTempFile(File.createTempFile("edam","temp"))
     tfile.text=content
     return tfile
 }
-def filenameToTitle(File file){
-    file.name.replaceAll(/\.(txt|md)$/,'').replaceAll(/^(.)/,{a,m->m.toUpperCase()})
-}
 def pageLinkTitle(Map page){
-    return replaceParams(options.pageLinkTitle,[chapterTitle:options.chapterTitle,title:page.title,index:page.index,name:page.file.name.replaceAll(/\.(md|txt)$/,'')])
+    return replaceParams(options.pageLinkTitle,[chapterTitle:options.chapterTitle,title:page.title,index:page.index,name:page.file.basename])
+}
+def subLinkTitle(Map page,File dir){
+    return replaceParams(options.subLinkTitle,[sectionTitle:options.sectionTitle,title:page.title,index:page.index,name:dir.name])
 }
 def readIndexFile(File dir){
     def nameRegex="^"+options.indexFileName+'\\.(md|txt)$'
     def file=dir.listFiles().find{it.name=~nameRegex}
-    def index=null
-    def title=readTitle(file)
-    if(file && !title){
-        title = filenameToTitle(file)
-    }
-    if(title){
-        title=replaceParams(title,pagevars,options.tokenStart,options.tokenEnd)
+    def index
+    if(file){
+        def title=replaceParams(file.title,pagevars,options.tokenStart,options.tokenEnd)
         index=[title:title,index:-1,outfile:"${options.indexFileOutputName}.html",file:file]
     }
     return index
 }
-def replaceParams(String templ,Map params,String tokenStart, String tokenEnd){
-    def replaced=templ.replaceAll('('+java.util.regex.Pattern.quote(tokenStart)+'([a-zA-Z_0-9.-]+?)'+java.util.regex.Pattern.quote(tokenEnd)+')',{all,match1,match2->
+def replaceParams(String templ,Map params,String tokenStart='${', String tokenEnd='}'){
+    def replaced=templ.replaceAll('('+quote(tokenStart)+'([a-zA-Z_0-9.-]+?)'+quote(tokenEnd)+')',{all,match1,match2->
             null!=params[match2]?params[match2]:match1
         })
     return replaced
 }
-def replaceParams(String templ,Map params){
-    return replaceParams(templ,params,'${','}')
-}
 def expandFile(File file){
     pagevars?writeTempFile(replaceParams(file.text,pagevars,options.tokenStart,options.tokenEnd)):file
 }
-def readToc(File dir){
-    def tocfile=new File(dir,"toc.conf")
-    def toc=null
-    if(tocfile.exists()){    
-        toc=[]
+def outfileName(title,index,file,toc){
+    def filestub=replaceParams(options.pageFileName,[title:titleToIdentifier(title),index:index,name:file.name.replaceAll(/\.(md|txt)$/,'')])
+    def name=filestub
+    def x=1
+    while(toc.find{it.outfile==name+".html"}){
+        x++
+        name=filestub+"-${x}"
+    }
+    "${name}.html"
+}
+def readToc(File tocfile){
+    def toc=[]
+    if(tocfile.exists()){
         tocfile.eachLine { line ->
             def match=line=~/^(\d+):([^:]+):(.+)$/
             if(match.matches()){
-                fdef=[index:match.group(1).toInteger(),file:new File(dir,match.group(2)),title:match.group(3).trim()]
-                def identifier=titleToIdentifier(fdef.title)
-                def params=[title:identifier,index:fdef.ndx,name:fdef.file.name.replaceAll(/\.(md|txt)$/,'')]
-                def filestub=replaceParams(options.pageFileName,params)
-                def teststub=filestub
-                def x=1
-                while(toc.find{it.outfile==teststub+".html"}){
-                    x++
-                    teststub=filestub+"-${x}"
-                }
-                fdef.outfile=teststub+".html"
+                def fdef=[index:match.group(1).toInteger(),file:new File(dir,match.group(2)),title:match.group(3).trim()]
+                fdef.outfile=outfileName(fdef.title,fdef.index,fdef.file,toc)
                 toc<<fdef
             }
         }
@@ -164,37 +176,18 @@ def getToc(File dir){
     def nameRegex='^(toc|'+options.indexFileName+')\\.(md|txt)$'
     def mdfiles=dir.listFiles().findAll{(it.name=~/\.(md|txt)$/) && !(it.name=~nameRegex)}
     def tocfile=new File(dir,"toc.conf")
-    def readtoc=readToc(dir)
+    def readtoc=readToc(tocfile)
     def toc=[]
     if(!tocfile.exists()){
-        addAutoFile tocfile
+        addTempFile tocfile,true
         //create toc.conf
         def ndx=1
         tocfile.withWriter { out ->
             mdfiles.each{file->
-                def title=readTitle(file)
-                if(!title){
-                    title = filenameToTitle(file)
-                }
-                title=replaceParams(title,pagevars,options.tokenStart,options.tokenEnd)
-                def outfile
-                def identifier=titleToIdentifier(title)
-                def params=[title:identifier,index:ndx,name:file.name.replaceAll(/\.(md|txt)$/,'')]
-                def filestub=replaceParams(options.pageFileName,params)
-                def teststub=filestub
-                def x=1
-                while(toc.find{it.outfile==teststub+".html"}){
-                    x++
-                    teststub=filestub+"-${x}"
-                }
-                outfile=teststub+".html"
-                if(title){
-                    toc<<[index:ndx,file:file,title:title,outfile:outfile]
-                    out.writeLine("${ndx}:${file.name}:${title}")
-                    ndx+=1
-                }else{
-                    println "Warning: File has no title: ${file}"
-                }
+                def title=replaceParams(file.title,pagevars,options.tokenStart,options.tokenEnd)
+                toc<<[index:ndx,file:file,title:title,outfile:outfileName(title,ndx,file,toc)]
+                out.writeLine("${ndx}:${file.name}:${title}")
+                ndx++
             }
         }
     }else{
@@ -210,11 +203,12 @@ def getToc(File dir){
     return toc
 }
 
-def createTocMdFile(File dir,toc,title,content=null){
+def createTocMdFile(File dir,toc,title,content=null, subdirs=null){
     def tocout=new File(dir,"${options.tocFileName}.txt")
     if(!tocout.exists() && !genTocOnly){
-        addAutoFile tocout
+        addTempFile tocout,true
     }
+    //println "createTocMdFile: ${tocout}"
     tocout.withWriter{writer->
         if(content || !genTocOnly){
             writer<< (content?:"% ${title}")
@@ -227,6 +221,19 @@ def createTocMdFile(File dir,toc,title,content=null){
             toc.each{titem->
                 writer<<"${titem.index}. [${pageLinkTitle(titem)}](${titem.outfile})\n"
             }
+        }
+        if(subdirs){
+            if(toc){
+                writer<<"\n"
+            }
+            if(content || genTocOnly){
+                writer<<"## ${options.subTocTitle}\n\n"
+            }
+            def i=1
+            subdirs.each{sitem->
+                writer<<"${i}. [${subLinkTitle(sitem.index,sitem.dir)}](${sitem.dir.name}/${sitem.index.outfile})\n"
+            }
+            //xxx: add toc of every item in sitem.toc?
         }
     }
 }
@@ -274,7 +281,14 @@ $for(include-after)$
 $include-after$
 $endfor$
 </body>
-</html>''',nav:'''<nav class="page $navclass$">
+</html>''',nav:'''$if(crumbs)$
+<nav class="breadcrumb $navclass$">
+    <ul>$for(crumb)$
+        <li>$if(crumblink)$<a href="$crumblink$">$crumbtitle$</a>$endif$$if(crumbname)$$crumbname$$endif$</li>
+    $endfor$</ul>
+</nav>
+$endif(crumbs)$
+<nav class="page $navclass$">
     <ul>
         <li class="current"><a href="$currentpagelink$">$currentpage$</a></li>
         $if(tocpage)$<li class="toc"><a href="$tocpagelink$">$tocpage$</a></li>$endif$
@@ -284,21 +298,17 @@ $endfor$
 </nav>''']
 
 def getTemplates(File tdir){
-    def templates=[:]
-    defaultTemplates.keySet().each{k->
-        templates[k]=new File(tdir,"${k}.template")
-    }
-    templates.each{k,v->
-        if(!v.exists()){
-            addAutoFile v
-            if(!v.parentFile.exists()){
-                addAutoFile v.parentFile
-            }
-            v.parentFile.mkdirs()
-            v.withWriter{w->w.write(defaultTemplates[k])}
+    def temps=[:]
+    defaultTemplates.each{k,v->
+        def f=new File(tdir,"${k}.template")
+        if(!f.exists()){
+            addTempFile f,true
+            f.parentFile.mkdirs()
+            f.text=v
         }
+        temps[k]=f
     }
-    return templates
+    temps
 }
 
 def runPandoc(List longparams){
@@ -310,37 +320,50 @@ def runPandoc(List longparams){
     }
     return panargs.execute()
 }
-endif=java.util.regex.Pattern.quote('$endif$')
+    endif=quote('$endif$')
+    crendif=quote('$endif(crumbs)$')
+endfor=quote('$endfor$')
+navPats=[tocpagelink:quote('$if(tocpage)$'),nextpagelink:quote('$if(nextpage)$'),prevpagelink:quote('$if(prevpage)$'),crumbs:quote('$if(crumbs)$')]
+
 def replaceNavContent(Map navs,String navcontent){
-    navs.keySet().each{k->
-        navcontent=navcontent.replaceAll(/\$${k}\$/,{
-            navs[k]
-        })
-    }
     //replace ifclauses
-    def clauses=[(java.util.regex.Pattern.quote('$if(tocpage)$')):'tocpagelink',
-                (java.util.regex.Pattern.quote('$if(nextpage)$')):'nextpagelink',
-                (java.util.regex.Pattern.quote('$if(prevpage)$')):'prevpagelink']
     
-    clauses.each{k,v->
-        if(navs[v]){
-            navcontent=navcontent.replaceAll(k+'(.*?)'+endif,'$1')
-        }else{
-            navcontent=navcontent.replaceAll(k+'(.*?)'+endif,'')
+    
+    navPats.each{k,v->
+        navcontent=navcontent.replaceAll('(?s)'+v+'(.*?)'+(k=='crumbs'?crendif:endif),navs[k]?'$1':'')
+    }
+/*    def m=navcontent=~navPats.crumbs+'(.*?)'+crendif*/
+/*    println "crumbs: ${m.matches()}, ${navcontent}"*/
+    
+    def crumbs=navs.remove('crumbs')
+    if(crumbs){
+        navcontent=navcontent.replaceAll('(?s)'+quote('$for(crumb)$')+'(.*?)'+endfor){all,m1->
+            //evaluate crumbs in a loop
+            def repl=[]
+            def r=crumbs.size() //distance of breadcrumb, starting at top
+            def s = new StringBuilder()
+            crumbs.each{c->
+                //each crumb either has a crumblink to a page, or just a crumbname (placeholder)
+                def vars=c.placeholder?[crumbname:c.dir.name]:[crumbtitle:c.title,crumblink: ("../"*r) + c.outfile]
+                def tmpls=[:]
+                def tval=m1
+                [crumblink:quote('$if(crumblink)$'),crumbname:quote('$if(crumbname)$')].each{k,v->
+                    //for template (m1) remove invalid template, keep valid one
+                    tval=tval.replaceAll(v+'(.*?)'+endif,vars[k]?'$1':'')
+                }
+                //finally, replace vars in the remaining template for this crumb
+                s<<replaceParams(tval,vars,'$','$')
+                r--
+            }
+            return s.toString()
         }
     }
-    navcontent
+    replaceParams(navcontent,navs,'$','$')
 }
-
-/**
- * Generate output files using pandoc. 
- * order of output:
- * -1: index (if it exists)
- * 0: toc (if doToc)
- * (-1 and 0 are merged if tocAsIndex)
- * 1: first page, ...
- */
-def generateAll(toc,templates,File dir, File outdir){
+def chapLinkTitle(titem){
+    titem.index>0 && options.chapterNumbers=='true' ?"${options.chapterTitle} ${titem.index}: ${pageLinkTitle(titem)}":pageLinkTitle(titem)
+}
+def prepareAll(toc,File dir){
     def ndxtoc=[]
     
     def index=readIndexFile(dir)
@@ -351,9 +374,9 @@ def generateAll(toc,templates,File dir, File outdir){
         doToc=false
         doNav=false
     }
-    
     def tocdoc
-    if(doToc && toc.size()>1){
+    if(doToc && (toc.size() )>1){
+        //&& (toc.size() + subdirs?.size())>0
         tocdoc=[index:0,title:options.tocTitle,file:new File(dir,"${options.tocFileName}.txt"),outfile:'toc.html']
         ndxtoc<<tocdoc
     }
@@ -366,12 +389,6 @@ def generateAll(toc,templates,File dir, File outdir){
             tocdoc.content=index.file.text
         }
     }
-    if(tocdoc){
-        createTocMdFile(genTocOnly?outdir:dir,toc,tocdoc.title,tocdoc.content)
-    }
-    if(genTocOnly){
-        return
-    }
     
     def allpages=ndxtoc + toc
     
@@ -381,9 +398,6 @@ def generateAll(toc,templates,File dir, File outdir){
             allpages[0].outfile="${options.indexFileOutputName}.html"
         }
     }
-    
-    def navfileTop=addTempFile(new File(dir,'temp-nav-top.html'))
-    def navfileBot=addTempFile(new File(dir,'temp-nav-bot.html'))
     
     if('true'==options.singleOutputFile){
         //list all markdown files into the multifiles of the first entry
@@ -402,20 +416,41 @@ def generateAll(toc,templates,File dir, File outdir){
         allpages = [allpages[0]]
     }
     
+    return allpages
+}
+/**
+ * Generate output files using pandoc. 
+ * order of output:
+ * -1: index (if it exists)
+ * 0: toc (if doToc)
+ * (-1 and 0 are merged if tocAsIndex)
+ * 1: first page, ...
+ */
+def generateAll(allpages,toc,templates,File dir, File outdir, crumbs, subdirs){
+    def navfileTop=addTempFile(new File(dir,'temp-nav-top.html'))
+    def navfileBot=addTempFile(new File(dir,'temp-nav-bot.html'))
+    def tocdoc = allpages.find{it.index==0}
+    def index = allpages.find{it.index==-1}
+    if(tocdoc){
+        createTocMdFile(genTocOnly?outdir:dir,toc,tocdoc.title,tocdoc.content,subdirs)
+    }
+    if(genTocOnly){
+        return allpages
+    }
     allpages.eachWithIndex{titem,x->
         def pargs=['-B',expandFile(templates.before)]
         if(doNav){
             def navcontent=templates.nav.text
             //set up nav links
-            def navs=[currentpage:titem.index>0 && options.chapterNumbers=='true' ?"${options.chapterTitle} ${titem.index}: ${pageLinkTitle(titem)}":pageLinkTitle(titem),currentpagelink:titem.outfile]
+            def navs=[currentpage:chapLinkTitle(titem),currentpagelink:titem.outfile]
             if(x<allpages.size()-1){
                 //all but the last page
-                navs.nextpage=allpages[x+1].index>0 && options.chapterNumbers=='true'?"${options.chapterTitle} ${allpages[x+1].index}: ${pageLinkTitle(allpages[x+1])}":pageLinkTitle(allpages[x+1])
+                navs.nextpage=chapLinkTitle(allpages[x+1])
                 navs.nextpagelink=allpages[x+1].outfile
             }
             if(titem.index>1){
                 //all content pages but the first
-                navs.prevpage=allpages[x-1].index>0 && options.chapterNumbers=='true'?"${options.chapterTitle} ${allpages[x-1].index}: ${pageLinkTitle(allpages[x-1])}":pageLinkTitle(allpages[x-1])
+                navs.prevpage=chapLinkTitle(allpages[x-1])
                 navs.prevpagelink=allpages[x-1].outfile
             }
             def toctitle=tocdoc?.title
@@ -431,12 +466,12 @@ def generateAll(toc,templates,File dir, File outdir){
             }
             //write nav temp files
             navfileTop.withWriter{writer->
-                def txt=replaceNavContent(navs + [navclass:'top'],navcontent)
-                writer.write(pagevars?replaceParams(txt,pagevars):txt)
+                def txt=replaceNavContent(navs + [navclass:'top',crumbs:crumbs],navcontent)
+                writer.write(pagevars?replaceParams(txt,pagevars,options.tokenStart,options.tokenEnd):txt)
             }
             navfileBot.withWriter{writer->
-                def txt=replaceNavContent(navs + [navclass:'bottom'],navcontent)
-                writer.write(pagevars?replaceParams(txt,pagevars):txt)
+                def txt=replaceNavContent(navs + [navclass:'bottom',crumbs:crumbs],navcontent)
+                writer.write(pagevars?replaceParams(txt,pagevars,options.tokenStart,options.tokenEnd):txt)
             }
             pargs.addAll(['-B',navfileTop,'-A',navfileBot])
         }
@@ -456,142 +491,183 @@ def generateAll(toc,templates,File dir, File outdir){
         def result=proc.waitFor()
         if(0!=result){
             println "Error running pandoc, result: ${result}"
-            return
+            throw new RuntimeException("Pandoc run failed: ${result}")
         }
         
     }
+    allpages
 }
-def docsdir
-def tdir
-def outputdir
-def x=0
-def xtraargs = false
-while(x<args.length){
-    if(!xtraargs){
-        switch(args[x]){
-            case '-h':
-                help=true
-                break
-            case '--help':
-                help=true
-                break
-            case '-d':
-                docsdir=new File(args[x+1])
-                x++
-                break
-            case '-t':
-                tdir = new File(args[x+1])
-                x++
-                break
-            case '-o':
-                outputdir=new File(args[x+1])
-                x++
-                break
-            case '--no-toc':
-                doToc=false
-                break
-            case '--no-nav':
-                doNav=false
-                break
-            case '--no-auto-clean':
-                cleanUpAuto=false
-                break
-            case '--verbose':
-                verbose=true
-                break
-            case '--separate-toc':
-                tocAsIndex=false
-                break
-            case '--gen-toc-only':
-                genTocOnly=true
-                break
-            case '--variables':
-                Properties p = new Properties()
-                p.load(new File(args[x+1]).newReader())
-                pagevars.putAll(p)
-            case '-V':
-                def arr=args[x+1].split('=',2)
-                if(arr.length>1){
-                    pagevars[arr[0]]=arr[1]
-                }
-                x++
-                break
-            case '-O':
-                def arr=args[x+1].split('=',2)
-                if(arr.length>1){
-                    options[arr[0]]=arr[1]
-                }
-                x++
-                break
-            case '-x':
-                xtraargs=true
+
+def parseArgs(pargs){
+    def x=0
+    def xtraargs = false
+    
+    def docsdir
+    def tdir
+    def outputdir
+    while(x<pargs.length){
+        if(!xtraargs){
+            switch(pargs[x]){
+                case '-h':
+                    help=true
+                    break
+                case '--help':
+                    help=true
+                    break
+                case '-d':
+                    docsdir=new File(pargs[x+1])
+                    x++
+                    break
+                case '-t':
+                    tdir = new File(pargs[x+1])
+                    x++
+                    break
+                case '-o':
+                    outputdir=new File(pargs[x+1])
+                    x++
+                    break
+                case '--no-toc':
+                    doToc=false
+                    break
+                case '--no-nav':
+                    doNav=false
+                    break
+                case '--no-auto-clean':
+                    cleanUpAuto=false
+                    break
+                case '--verbose':
+                    verbose=true
+                    break
+                case '--separate-toc':
+                    tocAsIndex=false
+                    break
+                case '--gen-toc-only':
+                    genTocOnly=true
+                    break
+                case '--variables':
+                    Properties p = new Properties()
+                    p.load(new File(pargs[x+1]).newReader())
+                    pagevars.putAll(p)
+                case '-V':
+                    def arr=pargs[x+1].split('=',2)
+                    if(arr.length>1){
+                        pagevars[arr[0]]=arr[1]
+                    }
+                    x++
+                    break
+                case '-O':
+                    def arr=pargs[x+1].split('=',2)
+                    if(arr.length>1){
+                        options[arr[0]]=arr[1]
+                    }
+                    x++
+                    break
+                case '-r':
+                    options.recurseDepth="-1"
+                    break
+                case '-x':
+                    xtraargs=true
+            }
+        }else{
+            pdocextra<<pargs[x]
         }
-    }else{
-        pdocextra<<args[x]
+        x++
     }
-    x++
+    [docsdir:docsdir,tdir:tdir,outputdir:outputdir]
 }
-if(!docsdir){
-    docsdir = new File(System.getProperty("user.dir"))
-}
-if(help){
-    println "% Usage\n"
-    println "    edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]"
-    println "    [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables <propertiesfile> ] [-x [ extra pandoc args .. ] ]\n"
-    println '''## Arguments
+argDescs=[
+'-h/--help'
+:    'Show this help text',
+'-d <basedir>'
+:    'The base directory containing the docs to convert. Defaults to the current directory.',
+'-t <templatesdir>'
+:   "The directory containing templates. Defaults to basedir/templates.",
+'-o <outputdir>'
+:   'The directory to write HTML files to. Defaults to the basedir.',
+'--no-toc'
+:   'Don\'t include the Table of Contents.',
+'--no-nav'
+:   "Don't include navigation links on each page.",
+'--verbose'
+:   "Be verbose about running pandoc.",
+'--no-auto-clean'
+:   "Automatically clean up any generated files. Otherwise templates/toc.txt will be created.",
+'--separate-toc'
+:   "Put the Table of Contents on a separate page, instead of at the end of the index page.",
+'-O option=value'
+:   "Override an option value. Options are shown below.",
+'-V var=value'
+:   "Define a variable to expand within templates and markdown content.",
+'--variables <propertiesfile>'
+:   "Load variables from a properties file.",
+]
+def printHelp(){    
+    println '''% Usage\n
+    edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>]
+        [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
+        [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables <propertiesfile> ]
+        [-x [ extra pandoc args .. ] ]
 
-`-h/--help`
-:   Show this help text.
-
-`-d <basedir>`
-:   The base directory containing the docs to convert. Defaults to the current directory.
-
-`-t <templatesdir>`
-:   The directory containing templates. Defaults to basedir/templates.
-
-`-o <outputdir>`
-:   The directory to write HTML files to. Defaults to the basedir.
-
-`--no-toc`
-:   Don't include the Table of Contents.
-
-`--no-nav`
-:   Don't include navigation links on each page.
-
-`--verbose`
-:   Be verbose about running pandoc
-
-`--no-auto-clean`
-:   Automatically clean up any generated files. Otherwise templates/toc.txt will be created.
-
-`--separate-toc`
-:   Put the Table of Contents on a separate page, instead of at the end of the index page.
-
-`-V var=value`
-:   Define a variable to expand within templates and markdown content.
-
-`--variables <propertiesfile>`
-:   Load variables from a properties file.
-
-`-O option=value`
-
-:   Override an option value. Options are shown below.\n'''
+## Arguments\n\n'''
+    argDescs.each{k,v->
+        println "`${k}`\n:    ${v}\n"
+    }
     println "## Options\n"
     println "Options define the conventional defaults used for generating output.  You can override any value with `-O option=value` on the commandline.\n"
     optionDescs.keySet().each{
-        println "${it}\n:    ${optionDescs[it]} Default: `${optionsDefaults[it]}`\n"
+        println "`${it}`\n:    ${optionDescs[it]} Default: `${optionsDefaults[it]}`\n"
     }
+}
+/**
+ * Run edam on a directory. 
+ * rdepth = remaining dir depth to follow, -1 for indefinite
+ * crumbs = breadcrumbs from upper directories, in order
+ */
+def run(File docsdir, File tdir, File outputdir, rdepth=0, crumbs=[]){
+    def rtdir=tdir
+    if(!tdir){
+        rtdir=new File(docsdir,'templates')   
+    }
+    def routputdir=outputdir
+    if(!outputdir){
+        routputdir=docsdir
+    }
+    //todo: parse edam.conf
+    def toc= getToc(docsdir)
+    def pages=prepareAll(toc,docsdir)
+    def subdirs=[]
+    if(rdepth!=0){
+        def scrumb=new ArrayList(crumbs)
+        if(toc){
+            scrumb<<pages[0]
+        }else if(scrumb){
+            scrumb<<[dir:docsdir,placeholder:true]
+        }
+        docsdir.eachDirMatch(compile(options.recurseDirPattern)){dir->
+           if(dir.name!='templates'){
+                def newoutputdir=new File(routputdir,dir.name)
+                def result=run(dir,tdir,newoutputdir,rdepth-1,scrumb)
+                //add index doc to subdirs list for this toc
+                if(result?.toc){
+                    subdirs<<[dir:dir,index:result.toc[0],toc:result.toc]
+                }
+           }
+        }
+    }
+    def templates=getTemplates(rtdir)
+    generateAll(pages,toc,templates,docsdir,routputdir,crumbs,subdirs)
+    
+    [docsdir:docsdir,tdir:rtdir,outputdir:routputdir,toc:pages]
+}
+
+def dirs=parseArgs(args)
+
+if(!dirs.docsdir){
+    dirs.docsdir = new File(System.getProperty("user.dir"))
+}
+if(help){
+    printHelp()
     return 1
 }
-if(!tdir){
-    tdir=new File(docsdir,'templates')   
-}
-if(!outputdir){
-    outputdir=docsdir   
-}
-def toc= getToc(docsdir)
-def templates=getTemplates(tdir)
-if(verbose){
-    println "running generateAll with options: ${options}"
-}
-generateAll(toc,templates,docsdir,outputdir)
+
+run(dirs.docsdir,dirs.tdir,dirs.outputdir,options.recurseDepth.toInteger())
