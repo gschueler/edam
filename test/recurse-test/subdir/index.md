@@ -1,0 +1,3 @@
+% Subdir page
+
+subdir page
