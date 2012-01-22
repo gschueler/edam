@@ -1,55 +1,127 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Edam - easy doc generation with pandoc</title>
+  <title>How it Works</title>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
   <meta name="generator" content="pandoc" />
   <meta name="author" content="Greg Schueler" />
-  <meta name="date" content="1/16/2012" />
-  <link rel="stylesheet" href="style.css" type="text/css" />
+  <meta name="date" content="1/22/2012" />
+  <link rel="stylesheet" href="../style.css" type="text/css" />
 </head>
 <body>
 
 
+<nav class="breadcrumb top">
+    <ul>
+        <li><a href="../index.html">Edam - easy doc generation with pandoc</a></li>
+    </ul>
+</nav>
+
 <nav class="page top">
     <ul>
-        <li class="current"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        <li class="current"><a href="how-it-works.html">Chapter 1: How it Works</a></li>
+        <li class="toc"><a href="index.html">Documentation</a></li>
         
-        
-        <li class="next"><a href="usage.html">Chapter 1: Usage</a></li>
+        <li class="next"><a href="usage.html">Chapter 2: Usage</a></li>
     </ul>
 </nav>
 <div id="docbody">
-<h1 class="title">Edam - easy doc generation with pandoc</h1>
-<p
->Edam is a simple <a href="http://johnmacfarlane.net/pandoc/"
-  >pandoc</a
-  > wrapper written in Groovy to help generate documentation from Markdown text files.</p
+<h1 class="title">How it Works</h1>
+<div id="TOC"
+><ul
+  ><li
+    ><a href="#index-pages"
+      >Index pages</a
+      ></li
+    ><li
+    ><a href="#special-files"
+      >Special files</a
+      ></li
+    ><li
+    ><a href="#document-titles"
+      >Document titles</a
+      ></li
+    ><li
+    ><a href="#document-naming"
+      >Document naming</a
+      ></li
+    ><li
+    ><a href="#navigation"
+      >Navigation</a
+      ><ul
+      ><li
+	><a href="#breadcrumbs"
+	  >Breadcrumbs</a
+	  ></li
+	></ul
+      ></li
+    ><li
+    ><a href="#auto-clean"
+      >Auto-clean</a
+      ></li
+    ><li
+    ><a href="#templates"
+      >Templates</a
+      ><ul
+      ><li
+	><a href="#nav-variables"
+	  >Nav Variables</a
+	  ></li
+	><li
+	><a href="#breadcrumb-nav-variables"
+	  >Breadcrumb Nav Variables</a
+	  ></li
+	></ul
+      ></li
+    ><li
+    ><a href="#variable-expansion"
+      >Variable expansion</a
+      ></li
+    ></ul
+  ></div
+>
+<h2 id="index-pages"
+><a href="#TOC"
+  >Index pages</a
+  ></h2
 ><p
->It is completely inspired by <a href="http://www.unexpected-vortices.com/sw/gouda/docs/"
-  >Gouda</a
-  >, which is a python script.</p
+>By convention, Edam tries to produce an <code
+  >index.html</code
+  > in each directory, so it follows a few rules to do this:</p
+><ol style="list-style-type: decimal;"
+><li
+  >If you have a &quot;readme.md&quot; or &quot;index.md&quot; it becomes the Index.</li
+  ><li
+  >If you have only one markdown file in the directory it becomes the Index.</li
+  ><li
+  >If you have multiple markdown files, Append the Table of Contents to the Index page.</li
+  ><li
+  >If there are multiple markdown files and no Index, the Table of Contents becomes the Index.</li
+  ></ol
 ><p
->All of the docs in the docs/ dir were generated using this command:</p
-><pre
-><code
-  >edam.groovy -o docs
-</code
-  ></pre
-><h2 id="behavior"
->Behavior</h2
-><p
->The purpose is to simply generate a set of HTML pages, with cross-navigation links, based on a set of Markdown text files in a directory.</p
-><p
->Each Markdown file (suffix <code
-  >.md</code
-  > or <code
-  >.txt</code
-  >) in the basedir is generated into a HTML file.</p
-><p
-><strong
-  >Special files</strong
-  >:</p
+>You can customize this behavior:</p
+><ul
+><li
+  >Use a different name for the default index file: change the <code
+    >-O indexFileName=(index|readme)</code
+    > option.</li
+  ><li
+  >Skip rule #2 and force the single file to name itself: use <code
+    >-O singleIndex=false</code
+    ></li
+  ><li
+  >Split out the Table of Contents into its own page: use <code
+    >--separate-toc</code
+    ></li
+  ><li
+  >Don't output any Table of Contents, use <code
+    >--no-toc</code
+    ></li
+  ></ul
+><h2 id="special-files"
+><a href="#TOC"
+  >Special files</a
+  ></h2
 ><dl
 ><dt
   >Index file</dt
@@ -83,6 +155,14 @@
       >--separate-toc</code
       > flag.</p
     ></dd
+  ><dt
+  ><code
+    >edam.conf</code
+    ></dt
+  ><dd
+  ><p
+    >A file containing Edam command-line arguments to process, one &quot;-flag [argument]&quot; per-line. You can use this in recursive mode to set options for a subdirectory context, and it will apply to all subdirectories.</p
+    ></dd
   ></dl
 ><p
 ><strong
@@ -91,7 +171,9 @@
 ><p
 >Each markdown file that is not a special file is a Document file.</p
 ><h2 id="document-titles"
->Document titles</h2
+><a href="#TOC"
+  >Document titles</a
+  ></h2
 ><p
 >Each document <em
   >should</em
@@ -106,7 +188,9 @@
 ><p
 >The Title is used in linking to the document, and can be used in the output file name.</p
 ><h2 id="document-naming"
->Document naming</h2
+><a href="#TOC"
+  >Document naming</a
+  ></h2
 ><p
 >Each markdown file will generate a HTML file with the same base name.</p
 ><p
@@ -127,72 +211,16 @@
   >, could produce <code
   >all-about-flamingos-12.html</code
   >.</p
-><h2 id="document-structure"
->Document structure</h2
-><p
->To make the generated HTML as simple as possible there are a few different modes, based on the number and names of the documents in your directory.</p
-><p
-><strong
-  >One Document Mode</strong
-  ></p
-><p
->In this mode, the document is generated as <code
-  >index.html</code
-  >. Turn it off with the <code
-  >singleIndex=false</code
-  > option and it will be named based on the <code
-  >pageFileName</code
-  >.</p
-><p
-><strong
-  >One Chapter Mode</strong
-  ></p
-><p
->If an index and one chapter file exist, then no TOC will be generated.</p
-><p
->Link sequence:</p
-><ol style="list-style-type: decimal;"
-><li
-  >Index</li
-  ><li
-  >Chapter 1</li
-  ></ol
-><p
-><strong
-  >Multiple Chapter Mode</strong
-  ></p
-><p
->Multiple chapters will generate a TOC. If an index file exists, then the TOC will be placed at the bottom of the Index content. If no index file exists it will simply be the only Index page content.</p
-><p
->Link sequence:</p
-><ol style="list-style-type: decimal;"
-><li
-  >Index + TOC</li
-  ><li
-  >Chapters ...</li
-  ></ol
-><p
-><strong
-  >Separate TOC Chapter Mode</strong
-  ></p
-><p
->If <code
-  >--separate-toc</code
-  > is used, and an Index page exists, the TOC and Index are generated as separate pages:</p
-><p
->Link sequence:</p
-><ol style="list-style-type: decimal;"
-><li
-  >Index</li
-  ><li
-  >Toc page</li
-  ><li
-  >Chapters</li
-  ></ol
 ><h2 id="navigation"
->Navigation</h2
+><a href="#TOC"
+  >Navigation</a
+  ></h2
 ><p
 >If more than one output page is generated, then the navigation links are included at the top and bottom of each page. Depending on where the page is in the sequence, and the type of page, some navigation links may or may not be included. The nav template can customize this behavior, or you can use CSS to hide/reposition the navigation links.</p
+><p
+>Disable all navigation links using the <code
+  >--no-nav</code
+  > flag.</p
 ><p
 >Navigation links:</p
 ><ul
@@ -205,8 +233,16 @@
   ><li
   >Previous page - included on every document page except the first document.</li
   ></ul
+><h3 id="breadcrumbs"
+><a href="#TOC"
+  >Breadcrumbs</a
+  ></h3
+><p
+>In recursive mode, each page in a subdirectory will also include the breadcrumb navigation links. Each link will go to the index page of a higher-level directory.</p
 ><h2 id="auto-clean"
->Auto-clean</h2
+><a href="#TOC"
+  >Auto-clean</a
+  ></h2
 ><p
 >Edam uses a few template and intermediate files when generating the appropriate source to feed to pandoc. By default all of the template and intermediate files are &quot;auto-cleaned&quot;, that is, deleted, after use. However, you may want to use the <code
   >--no-auto-clean</code
@@ -218,7 +254,9 @@
   >--no-auto-clean</code
   >, customize one or two templates, and remove the rest of the generated files. Then run edam as normal and the other files will be autocleaned to keep your sourcebase clean.</p
 ><h2 id="templates"
->Templates</h2
+><a href="#TOC"
+  >Templates</a
+  ></h2
 ><p
 >Edam includes some template files used in the final HTML output. The three HTML document templates (html.template, before.template, and after.template) are fed directly to pandoc, so the variable subsitution described <a href="http://johnmacfarlane.net/pandoc/README.html#templates"
   >here</a
@@ -234,11 +272,19 @@
     ></dd
   ><dt
   ><code
+    >header.template</code
+    ></dt
+  ><dd
+  ><p
+    >Placed before the navigation and content.</p
+    ></dd
+  ><dt
+  ><code
     >before.template</code
     ></dt
   ><dd
   ><p
-    >Placed before the navigation and content of each page.</p
+    >Placed after the navigation and before the content of each page.</p
     ></dd
   ><dt
   ><code
@@ -246,7 +292,15 @@
     ></dt
   ><dd
   ><p
-    >Placed after the content and bottom navigation of each page.</p
+    >Placed after the content and before the bottom navigation of each page.</p
+    ></dd
+  ><dt
+  ><code
+    >footer.template</code
+    ></dt
+  ><dd
+  ><p
+    >Placed after the bottom navigation of each page.</p
     ></dd
   ></dl
 ><p
@@ -257,10 +311,22 @@
     >nav.template</code
     ></dt
   ><dd
-  >Nav template for the toc/index page.</dd
+  ><p
+    >Nav template for navigation links.</p
+    ></dd
+  ><dt
+  ><code
+    >navCrumbs.template</code
+    ></dt
+  ><dd
+  ><p
+    >Nav template for breadcrumb links.</p
+    ></dd
   ></dl
 ><h3 id="nav-variables"
->Nav Variables</h3
+><a href="#TOC"
+  >Nav Variables</a
+  ></h3
 ><p
 >The default nav template shows the possible nav template variables:</p
 ><pre
@@ -313,8 +379,105 @@
   > will be included only if the specified page link should be shown (as described in the <a href="#navigation"
   >Navigation</a
   > section).</p
+><h3 id="breadcrumb-nav-variables"
+><a href="#TOC"
+  >Breadcrumb Nav Variables</a
+  ></h3
+><p
+>The default navCrumbs template contains a way to define the breadcrumb navigation:</p
+><pre
+><code
+  >$if(crumbs)$
+&lt;nav class=&quot;breadcrumb $navclass$&quot;&gt;
+    &lt;ul&gt;$for(crumb)$
+        &lt;li&gt;$if(crumblink)$&lt;a href=&quot;$crumblink$&quot;&gt;$crumbtitle$&lt;/a&gt;$endif$$if(crumbname)$$crumbname$$endif$&lt;/li&gt;
+    $endfor$&lt;/ul&gt;
+&lt;/nav&gt;
+$endif(crumbs)$
+</code
+  ></pre
+><dl
+><dt
+  ><code
+    >$if(crumbs)$</code
+    > and <code
+    >$endif(crumbs)$</code
+    ></dt
+  ><dd
+  ><p
+    >Defines the content if there are any breadcrumbs available</p
+    ></dd
+  ><dt
+  ><code
+    >$navclass</code
+    ></dt
+  ><dd
+  ><p
+    ><code
+      >top</code
+      > or <code
+      >bottom</code
+      >, depending on which part of the page</p
+    ></dd
+  ><dt
+  ><code
+    >$for(crumb)$</code
+    > and <code
+    >$endfor$</code
+    ></dt
+  ><dd
+  ><p
+    >Contains the content used for every breadcrumb</p
+    ></dd
+  ><dt
+  ><code
+    >$if(crumblink)$</code
+    > and <code
+    >$endif$</code
+    ></dt
+  ><dd
+  ><p
+    >Renders this content if the breadcrumb has a link</p
+    ></dd
+  ><dt
+  ><code
+    >$crumblink$</code
+    ></dt
+  ><dd
+  ><p
+    >Link for the breadcrumb</p
+    ></dd
+  ><dt
+  ><code
+    >$crumbtitle$</code
+    ></dt
+  ><dd
+  ><p
+    >Title of the link</p
+    ></dd
+  ><dt
+  ><code
+    >$if(crumbname)$</code
+    > and <code
+    >$endif$</code
+    ></dt
+  ><dd
+  ><p
+    >Renders this content if the breadcrumb has no link only a name (e.g. empty intermediate subdirectory)</p
+    ></dd
+  ><dt
+  ><code
+    >$crumbname$</code
+    ></dt
+  ><dd
+  ><p
+    >Name of intermediate directory that has no link.</p
+    ></dd
+  ></dl
 ><h2 id="variable-expansion"
->Variable expansion</h2
+><a href="#TOC"
+  >Variable expansion</a
+  ></h2
 ><p
 >To make it easier to templatize your Markdown and template files, edam supports a method of variable expansion within all files, unlike pandoc which only supports the main document template.</p
 ><p
@@ -336,10 +499,15 @@
 
 <nav class="page bottom">
     <ul>
-        <li class="current"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        <li class="current"><a href="how-it-works.html">Chapter 1: How it Works</a></li>
+        <li class="toc"><a href="index.html">Documentation</a></li>
         
-        
-        <li class="next"><a href="usage.html">Chapter 1: Usage</a></li>
+        <li class="next"><a href="usage.html">Chapter 2: Usage</a></li>
+    </ul>
+</nav>
+<nav class="breadcrumb bottom">
+    <ul>
+        <li><a href="../index.html">Edam - easy doc generation with pandoc</a></li>
     </ul>
 </nav>
 

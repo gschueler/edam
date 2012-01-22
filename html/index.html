@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edam - easy doc generation with pandoc</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Greg Schueler" />
+  <meta name="date" content="1/16/2012" />
+  <link rel="stylesheet" href="style.css" type="text/css" />
+</head>
+<body>
+
+
+<nav class="page top">
+    <ul>
+        <li class="current"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        
+        
+        
+    </ul>
+</nav>
+<div id="docbody">
+<h1 class="title">Edam - easy doc generation with pandoc</h1>
+<p
+>Edam is a <a href="http://johnmacfarlane.net/pandoc/"
+  >pandoc</a
+  > wrapper written in Groovy to help generate documentation from Markdown text files.</p
+><p
+>It is completely inspired by <a href="http://www.unexpected-vortices.com/sw/gouda/docs/"
+  >Gouda</a
+  >, which is a python script.</p
+><p
+>All of the docs in the docs/ dir were generated using this command:</p
+><pre
+><code
+  >edam.groovy -o docs
+</code
+  ></pre
+><h2 id="at-a-glance"
+>At a glance</h2
+><p
+>Edam takes all of the markdown-formatted <code
+  >.txt</code
+  > or <code
+  >.md</code
+  > in a directory:</p
+><pre
+><code
+  >getting-started.md
+howto.md
+readme.md
+usage.md
+</code
+  ></pre
+><p
+>And generates HTML pages for each one:</p
+><pre
+><code
+  >getting-started.html
+howto.html
+index.html
+usage.html
+</code
+  ></pre
+><p
+>The index (coming from 'index' or 'readme' file) will also contain a Table of Contents with links to each of the <code
+  >.html</code
+  > pages.</p
+><p
+>Each page will contain a set of navigation links to allow following the order of pages from one page to the next and back.</p
+><p
+>No default CSS file is included, so it is up to you to provide a <code
+  >style.css</code
+  > to style the content.</p
+><p
+>There is also a &quot;recursive&quot; mode, which will descend into subdirectories and apply the same logic:</p
+><pre
+><code
+  >my-project.md
+howto-guide/
+    01-getting-started.md
+    02-advanced.md
+
+index.html
+howto-guide/
+    01-getting-started.html
+    02-advanced.html
+    index.html
+</code
+  ></pre
+><p
+>Additionally, each Table of Contents in an upper-level will contain links to the front-page of each of its subdirectories' contents. The navigation links in each subdirectory page will contain a set of breadcrumb links for going back up in the directory hierarchy.</p
+><h2 id="sections"
+>Sections</h2
+><ol style="list-style-type: decimal;"
+><li
+  ><a href="docs/index.html"
+    >Documentation</a
+    ></li
+  ></ol
+>
+</div>
+
+<nav class="page bottom">
+    <ul>
+        <li class="current"><a href="index.html">Edam - easy doc generation with pandoc</a></li>
+        
+        
+        
+    </ul>
+</nav>
+
+</body>
+</html>

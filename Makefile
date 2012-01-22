@@ -1,10 +1,10 @@
 .PHONY: test
 
-docs: usage.md readme.md
-	./edam.groovy -o docs
+docs/index.html: docs/usage.md readme.md
+	./edam.groovy -o html -r -O 'recurseDirPattern=docs'
 
-usage.md: edam.groovy
-	./edam.groovy -h > usage.md
+docs/usage.md: edam.groovy
+	./edam.groovy -h > docs/usage.md
 
 test:
 	$(MAKE) -C test
