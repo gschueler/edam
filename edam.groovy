@@ -233,9 +233,14 @@ def createTocMdFile(File dir,toc,title,content=null, subdirs=null){
         }
     }
 }
-defaultTemplates=[header:'',before:'''<div id="docbody">
-''',after:'''</div>
-''',footer:'',html:'''<!DOCTYPE html>
+defaultTemplates=[
+header:'',
+before:'''<div id="docbody">
+''',
+after:'''</div>
+''',
+footer:'',
+html:'''<!DOCTYPE html>
 <html>
 <head>
   <title>$if(title-prefix)$$title-prefix$ - $endif$$if(pagetitle)$$pagetitle$$endif$</title>
@@ -277,13 +282,15 @@ $for(include-after)$
 $include-after$
 $endfor$
 </body>
-</html>''',nav:'''$if(crumbs)$
+</html>''',
+navCrumbs:'''$if(crumbs)$
 <nav class="breadcrumb $navclass$">
     <ul>$for(crumb)$
         <li>$if(crumblink)$<a href="$crumblink$">$crumbtitle$</a>$endif$$if(crumbname)$$crumbname$$endif$</li>
     $endfor$</ul>
 </nav>
-$endif(crumbs)$
+$endif(crumbs)$''',
+nav:'''
 <nav class="page $navclass$">
     <ul>
         <li class="current"><a href="$currentpagelink$">$currentpage$</a></li>
@@ -459,13 +466,14 @@ def generateAll(allpages,toc,templates,File dir, File outdir, crumbs, subdirs){
                 navs.tocpage=index.title
                 navs.tocpagelink=index.outfile
             }
+            def bcrumbnav=templates.navCrumbs.text
             //write nav temp files
             navfileTop.withWriter{writer->
-                def txt=replaceNavContent(navs + [navclass:'top',crumbs:crumbs],navcontent)
+                def txt=replaceNavContent(navs + [navclass:'top',crumbs:crumbs],bcrumbnav + navcontent)
                 writer.write(pagevars?replaceParams(txt,pagevars,options.tokenStart,options.tokenEnd):txt)
             }
             navfileBot.withWriter{writer->
-                def txt=replaceNavContent(navs + [navclass:'bottom',crumbs:crumbs],navcontent)
+                def txt=replaceNavContent(navs + [navclass:'bottom',crumbs:crumbs],navcontent + bcrumbnav)
                 writer.write(pagevars?replaceParams(txt,pagevars,options.tokenStart,options.tokenEnd):txt)
             }
             //pargs.addAll(['-B',navfileTop,'-A',navfileBot])
@@ -480,7 +488,8 @@ def generateAll(allpages,toc,templates,File dir, File outdir, crumbs, subdirs){
         pargs.addAll(['-A',templates.footer])
         def htemplate=expandFile(templates.html)
         def cssPath= options.cssRelative=='true'? '../'*crumbs.size() : '' 
-        pargs.addAll(['-o',new File(outdir,titem.outfile).absolutePath,'-s',"--css=${cssPath}${options.cssFileName}","--template=${htemplate.absolutePath}"])
+        def outfile=new File(outdir,titem.outfile)
+        pargs.addAll(['-o',outfile.absolutePath,'-s',"--css=${cssPath}${options.cssFileName}","--template=${htemplate.absolutePath}"])
         if(titem.index>0){
             pargs<<"--toc"
         }
@@ -494,6 +503,8 @@ def generateAll(allpages,toc,templates,File dir, File outdir, crumbs, subdirs){
         if(0!=result){
             println "Error running pandoc, result: ${result}"
             throw new RuntimeException("Pandoc run failed: ${result}")
+        }else{
+            println "${outfile}"
         }
         
     }
@@ -605,6 +616,8 @@ argDescs=[
 :   "The directory containing templates. Defaults to basedir/templates.",
 '-o <outputdir>'
 :   'The directory to write HTML files to. Defaults to the basedir.',
+'-r'
+:   'Recursively descend to subdirectories and apply Edam',
 '--no-toc'
 :   'Don\'t include the Table of Contents.',
 '--no-nav'
@@ -625,7 +638,7 @@ argDescs=[
 def printHelp(){    
     println '''% Usage\n
     edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>]
-        [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
+        [-r] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
         [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables <propertiesfile> ]
         [-x [ extra pandoc args .. ] ]
 
@@ -668,7 +681,7 @@ def run(File docsdir, File tdir, File outputdir, rdepth=0, crumbs=[]){
             scrumb<<[dir:docsdir,placeholder:true]
         }
         docsdir.eachDirMatch(compile(options.recurseDirPattern)){dir->
-           if(dir.name!='templates'){
+           if(dir.name!='templates' && dir!=outputdir){
                 flags=new HashMap(stash.flags)
                 pagevars=new HashMap(stash.pagevars)
                 options=new HashMap(stash.options)
