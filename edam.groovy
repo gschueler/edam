@@ -162,7 +162,7 @@ def readToc(File tocfile){
         tocfile.eachLine { line ->
             def match=line=~/^(\d+):([^:]+):(.+)$/
             if(match.matches()){
-                def fdef=[index:match.group(1).toInteger(),file:new File(dir,match.group(2)),title:match.group(3).trim()]
+                def fdef=[index:match.group(1).toInteger(),file:new File(tocfile.parentFile,match.group(2)),title:match.group(3).trim()]
                 fdef.outfile=outfileName(fdef.title,fdef.index,fdef.file,toc)
                 toc<<fdef
             }
