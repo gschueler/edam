@@ -48,6 +48,7 @@ optionsDefaults=[
     pageLinkTitle: '${title}',
     subLinkTitle: '${title}',
     recurseDirPattern: '.*',
+    recurseDirPatternIgnore: '^$',
     recurseDepth:'0'
     ]
 optionDescs=[
@@ -69,6 +70,7 @@ optionDescs=[
     pageLinkTitle: 'Template for title for links to the page, variables: `${index}`,`${title}`,`${name}`.',
     subLinkTitle: 'Template for title for links to a sub dir section, variables: `${sectionTitle}`, `${title}`, `${index}`, `${name}`',
     recurseDirPattern: 'Regex to match dirs to include in recursive generation.',
+    recurseDirPatternIgnore: 'Regex to match dirs to ignore in recursive generation.',
     recurseDepth: 'Number of dirs to recurse into. -1 means no limit.'
     ]
     
@@ -681,7 +683,7 @@ def run(File docsdir, File tdir, File outputdir, rdepth=0, crumbs=[]){
             scrumb<<[dir:docsdir,placeholder:true]
         }
         docsdir.eachDirMatch(compile(options.recurseDirPattern)){dir->
-           if(dir.name!='templates' && dir!=outputdir){
+           if(dir.name!='templates' && dir!=outputdir && !(dir.name=~options.recurseDirPatternIgnore)){
                 flags=new HashMap(stash.flags)
                 pagevars=new HashMap(stash.pagevars)
                 options=new HashMap(stash.options)
