@@ -24,7 +24,7 @@ import static java.util.regex.Pattern.quote
 import static java.util.regex.Pattern.compile
 
 flags=[:]
-flagDefaults=[pdocextra:[],help:false,doToc:true,doNav:true,tocAsIndex:true,genTocOnly:false,cleanUpAuto:true,verbose:false,recursive:false]
+flagDefaults=[pdocextra:[],help:false,doToc:true,doNav:true,tocAsIndex:true,genTocOnly:false,cleanUpAuto:true,verbose:false,recursive:false,preview:false]
 flags = new HashMap(flagDefaults)
 
 pagevars=[:]
@@ -48,7 +48,7 @@ optionsDefaults=[
     pageLinkTitle: '${title}',
     subLinkTitle: '${title}',
     recurseDirPattern: '.*',
-    recurseDirPatternIgnore: '^$',
+    recurseDirPatternIgnore: '^\\..*$',
     recurseDepth:'0'
     ]
 optionDescs=[
@@ -499,16 +499,27 @@ def generateAll(allpages,toc,templates,File dir, File outdir, crumbs, subdirs){
         if(titem.multifiles){
             pargs.addAll titem.multifiles
         }
-        def proc=runPandoc(pargs)
-        proc.consumeProcessOutput(System.out,System.err)
-        def result=proc.waitFor()
-        if(0!=result){
-            println "Error running pandoc, result: ${result}"
-            throw new RuntimeException("Pandoc run failed: ${result}")
-        }else{
+        if(!flags.preview){
+            def proc=runPandoc(pargs)
+            proc.consumeProcessOutput(System.out,System.err)
+            def result=proc.waitFor()
+            if(0!=result){
+                println "Error running pandoc, result: ${result}"
+                throw new RuntimeException("Pandoc run failed: ${result}")
+            }
             println "${outfile}"
+        }else{
+            print "${outfile} <-- ${titem.file.name}"
+            if(titem.index==-1){
+                print " (Index)"
+            }else if(titem.index==0){
+                print " (TOC, ${toc.size()} Chapters, ${subdirs?.size()} Directories)"
+            }else if(titem.index>0){
+                print " (Chapter ${titem.index})"
+            }
+            print " - ${titem.title}"
+            println ""
         }
-        
     }
     allpages
 }
@@ -599,6 +610,9 @@ def parseArgs(pargs){
                 case '-r':
                     options.recurseDepth="-1"
                     break
+                case '--preview':
+                    flags.preview=true
+                    break
                 case '-x':
                     xtraargs=true
             }
@@ -683,7 +697,7 @@ def run(File docsdir, File tdir, File outputdir, rdepth=0, crumbs=[]){
             scrumb<<[dir:docsdir,placeholder:true]
         }
         docsdir.eachDirMatch(compile(options.recurseDirPattern)){dir->
-           if(dir.name!='templates' && dir!=outputdir && !(dir.name=~options.recurseDirPatternIgnore)){
+           if(dir.name!='templates' && dir!=routputdir && !(dir.name=~options.recurseDirPatternIgnore)){
                 flags=new HashMap(stash.flags)
                 pagevars=new HashMap(stash.pagevars)
                 options=new HashMap(stash.options)
