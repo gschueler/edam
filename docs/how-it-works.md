@@ -2,6 +2,75 @@
 % Greg Schueler
 % 1/22/2012
 
+## Conventions
+
+Edam tries to use reasonable defaults as the conventions for its use, however most of the defaults can be changed if necessary.
+
+* Source directory - current directory. Specify with `-d` flag.
+* Output directory - same as source directory. Specify with `-o` flag.
+* Templates directory - 'templates' dir in the source directory. Specify with `-t` flag.
+* Output file name - basename of the source markdown file, with ".html".
+* Index file name - "index.html"
+
+Additionally, see the [Usage - Options](usage.html#options) section for further defaults that affect the generation of the output.
+
+## Basic Mode
+
+Edam takes all of the markdown-formatted `.txt` or `.md` in a Source directory:
+
+    getting-started.md
+    howto.md
+    readme.md
+    usage.md
+
+And generates HTML pages for each one into the Output directory:
+
+    getting-started.html
+    howto.html
+    index.html
+    usage.html
+
+The index (coming from 'index' or 'readme' file) will also contain a Table of Contents with links to each of the `.html` pages.
+
+Each page will contain a set of navigation links to allow following the order of pages from one page to the next and back. 
+
+No default CSS file is included, so it is up to you to provide a `style.css` to style the content.
+
+## Recursive Mode
+
+There is also a "recursive" mode, which will descend into subdirectories and apply the same logic.  Invoke it by using the `-r` command-line flag or setting the `recurseDepth` option to something non-zero to specify the depth to descend, with a negative number indicating forever.
+
+Source Directory:
+
+    my-project.md
+    howto-guide/
+        01-getting-started.md
+        02-advanced.md
+
+Output Directory: 
+    
+    index.html
+    howto-guide/
+        01-getting-started.html
+        02-advanced.html
+        index.html
+
+Additionally, each Table of Contents in an upper-level will contain links to the front-page of each of its subdirectories' contents.  The navigation links in each subdirectory page will contain a set of breadcrumb links for going back up in the directory hierarchy.
+
+Recursive mode will descend into each subdirectory of the Source directory.  You can modify the `recurseDirPattern` option to set a regular expression of directories that should be matched.
+
+Recursive mode will *not* descend into these directories by default:
+
+* 'templates' - any directory named templates
+* outputDir - the output directory itself.
+* Any directory name that matches the `recurseDirPatternIgnore` option as a regular expression.
+
+Each subdirectory in the Source directory will produce a corresponding subdirectory in the output directory.
+
+### Templates behavior
+
+Recursive mode will always use the Templates directory used by the top-level directory for each subdirectory.  At this time it doesn't look for sub template directories. >> todo.txt
+
 ## Index pages
 
 By convention, Edam tries to produce an `index.html` in each directory, so it follows a few rules to do this:
@@ -15,8 +84,14 @@ You can customize this behavior:
 
 * Use a different name for the default index file: change the `-O indexFileName=(index|readme)` option.
 * Skip rule #2 and force the single file to name itself: use `-O singleIndex=false`
-* Split out the Table of Contents into its own page: use `--separate-toc`
+* Split out the Table of Contents and Index into separate pages: use `--separate-toc`
 * Don't output any Table of Contents, use `--no-toc`
+
+## Auto-clean
+
+Edam uses a few template and intermediate files when generating the appropriate source to feed to pandoc. By default all of the template and intermediate files are "auto-cleaned", that is, deleted, after use.  However, you may want to use the `--no-auto-clean` flag once to generate the `toc.conf` and/or template files, and then customize them to your liking.  They won't be overwritten if they already exist.
+
+A typical use might be: use `--no-auto-clean`, customize one or two templates, and remove the rest of the generated files.  Then run edam as normal and the other files will be autocleaned to keep your sourcebase clean.
 
 ## Special files
 
@@ -26,7 +101,14 @@ Index file
 
 `toc.conf`
 
-:    This uses a simple non-markdown text format to list the source files in the order they should appear in the generated HTML docs. This file will be generated if it does not exist.  You can change the order of pages in the `toc.conf`, but the contents must match the source files in the directory, otherwise a warning will be printed (e.g. file is added or removed).
+:    This uses a simple non-markdown text format to list the source files in the order they should appear in the generated HTML docs. You can change the order of pages in the `toc.conf`, but the contents must match the source files in the directory, otherwise a warning will be printed (e.g. file is added or removed).
+     
+     Format:
+     
+         X:file.md:Title
+         ...
+    
+     X is a number, although this number is ignored and the line ordering is used for the chapter order.
 
 `toc.txt`
 
@@ -34,7 +116,13 @@ Index file
 
 `edam.conf`
 
-:    A file containing Edam command-line arguments to process, one "-flag [argument]" per-line.  You can use this in recursive mode to set options for a subdirectory context, and it will apply to all subdirectories.
+:    A file containing Edam command-line arguments to process, one `<flag> [argument]` per-line.  You can use this in recursive mode to set options for a subdirectory context, and it will apply to all subdirectories.
+
+     Example:
+
+         --separate-toc
+         -O pageFileName=docs-${index}
+         -O tocTitle=Documentation
 
 **Document files**
 
@@ -49,6 +137,8 @@ Each document *should* have a Title specified in the pandoc metadata syntax, as 
 If not specified, then the file name will be used as the title.
 
 The Title is used in linking to the document, and can be used in the output file name.
+
+In *Recursive mode*, the title of an Index file is used in linking to the subdirectory it is in.
 
 ## Document naming
 
@@ -75,12 +165,6 @@ Navigation links:
 ### Breadcrumbs
 
 In recursive mode, each page in a subdirectory will also include the breadcrumb navigation links.  Each link will go to the index page of a higher-level directory.
-
-## Auto-clean
-
-Edam uses a few template and intermediate files when generating the appropriate source to feed to pandoc. By default all of the template and intermediate files are "auto-cleaned", that is, deleted, after use.  However, you may want to use the `--no-auto-clean` flag once to generate the `toc.conf` and/or template files, and then customize them to your liking.  They won't be overwritten if they already exist.
-
-A typical use might be: use `--no-auto-clean`, customize one or two templates, and remove the rest of the generated files.  Then run edam as normal and the other files will be autocleaned to keep your sourcebase clean.
 
 ## Templates
 

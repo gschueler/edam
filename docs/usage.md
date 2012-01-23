@@ -1,7 +1,7 @@
 % Usage
 
     edam.groovy [-h/--help] [-d <basedir>] [-t <templatesdir>] [-o <outputdir>]
-        [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
+        [-r] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
         [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables <propertiesfile> ]
         [-x [ extra pandoc args .. ] ]
 
@@ -19,6 +19,9 @@
 
 `-o <outputdir>`
 :    The directory to write HTML files to. Defaults to the basedir.
+
+`-r`
+:    Recursively descend to subdirectories and apply Edam
 
 `--no-toc`
 :    Don't include the Table of Contents.
@@ -101,6 +104,9 @@ Options define the conventional defaults used for generating output.  You can ov
 
 `recurseDirPattern`
 :    Regex to match dirs to include in recursive generation. Default: `.*`
+
+`recurseDirPatternIgnore`
+:    Regex to match dirs to ignore in recursive generation. Default: `^\..*$`
 
 `recurseDepth`
 :    Number of dirs to recurse into. -1 means no limit. Default: `0`

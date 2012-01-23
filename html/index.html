@@ -36,24 +36,20 @@
   >edam.groovy -o docs
 </code
   ></pre
-><h2 id="at-a-glance"
->At a glance</h2
+><h2 id="take-a-set-of-markdown-text-files..."
+>Take a set of Markdown text files...</h2
 ><p
->Edam takes all of the markdown-formatted <code
-  >.txt</code
-  > or <code
-  >.md</code
-  > in a directory:</p
+>Source directory:</p
 ><pre
 ><code
   >getting-started.md
 howto.md
-readme.md
+readme.md - &quot;Welcome to my project...&quot;
 usage.md
 </code
   ></pre
 ><p
->And generates HTML pages for each one:</p
+>Output directory:</p
 ><pre
 ><code
   >getting-started.html
@@ -63,17 +59,33 @@ usage.html
 </code
   ></pre
 ><p
->The index (coming from 'index' or 'readme' file) will also contain a Table of Contents with links to each of the <code
-  >.html</code
-  > pages.</p
+>The '(readme|index).(md|txt)' is the &quot;Index&quot; page and outputs to 'index.html'.</p
 ><p
->Each page will contain a set of navigation links to allow following the order of pages from one page to the next and back.</p
+>The Index will contain the Table of Contents at the bottom:</p
+><pre
+><code
+  >Welcome to my project ...
+
+1. Getting Started
+2. How-To
+3. Usage
+</code
+  ></pre
 ><p
->No default CSS file is included, so it is up to you to provide a <code
+>Every page will contain a set of navigation links (next, previous, table of contents):</p
+><pre
+><code
+  >[Table of Contents] [&lt;- Getting Started] [-&gt; Usage]
+</code
+  ></pre
+><p
+>(No default CSS file is included, so it is up to you to provide a <code
   >style.css</code
-  > to style the content.</p
+  > to style the content.)</p
 ><p
->There is also a &quot;recursive&quot; mode, which will descend into subdirectories and apply the same logic:</p
+><strong
+  >Recursive mode</strong
+  > will descend into subdirectories. The Table of Contents will contain links to the Index of each of its subdirectories:</p
 ><pre
 ><code
   >my-project.md
@@ -89,7 +101,16 @@ howto-guide/
 </code
   ></pre
 ><p
->Additionally, each Table of Contents in an upper-level will contain links to the front-page of each of its subdirectories' contents. The navigation links in each subdirectory page will contain a set of breadcrumb links for going back up in the directory hierarchy.</p
+>Each subdirectory page will also contain a set of breadcrumb links for going back up in the directory hierarchy.</p
+><pre
+><code
+  >My Project &gt;
+[Table of Contents] [-&gt; Advanced]
+
+Getting Started
+...
+</code
+  ></pre
 ><h2 id="sections"
 >Sections</h2
 ><ol style="list-style-type: decimal;"

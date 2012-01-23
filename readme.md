@@ -13,29 +13,39 @@ All of the docs in the docs/ dir were generated using this command:
 
     edam.groovy -o docs
 
-## At a glance
+## Take a set of Markdown text files...
 
-Edam takes all of the markdown-formatted `.txt` or `.md` in a directory:
+Source directory:
 
     getting-started.md
     howto.md
-    readme.md
+    readme.md - "Welcome to my project..."
     usage.md
 
-And generates HTML pages for each one:
+Output directory:
 
     getting-started.html
     howto.html
     index.html
     usage.html
 
-The index (coming from 'index' or 'readme' file) will also contain a Table of Contents with links to each of the `.html` pages.
+The '(readme|index).(md|txt)' is the "Index" page and outputs to 'index.html'.
 
-Each page will contain a set of navigation links to allow following the order of pages from one page to the next and back. 
+The Index will contain the Table of Contents at the bottom:
 
-No default CSS file is included, so it is up to you to provide a `style.css` to style the content.
+    Welcome to my project ...
+    
+    1. Getting Started
+    2. How-To
+    3. Usage
 
-There is also a "recursive" mode, which will descend into subdirectories and apply the same logic:
+Every page will contain a set of navigation links (next, previous, table of contents):
+
+    [Table of Contents] [<- Getting Started] [-> Usage]
+
+(No default CSS file is included, so it is up to you to provide a `style.css` to style the content.)
+
+**Recursive mode** will descend into subdirectories. The Table of Contents will contain links to the Index of each of its subdirectories:
     
     my-project.md
     howto-guide/
@@ -48,5 +58,10 @@ There is also a "recursive" mode, which will descend into subdirectories and app
         02-advanced.html
         index.html
 
-Additionally, each Table of Contents in an upper-level will contain links to the front-page of each of its subdirectories' contents.  The navigation links in each subdirectory page will contain a set of breadcrumb links for going back up in the directory hierarchy.
+Each subdirectory page will also contain a set of breadcrumb links for going back up in the directory hierarchy.
 
+    My Project >
+    [Table of Contents] [-> Advanced]
+    
+    Getting Started
+    ...

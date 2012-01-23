@@ -19,10 +19,10 @@
 
 <nav class="page top">
     <ul>
-        <li class="current"><a href="how-it-works.html">Chapter 1: How it Works</a></li>
+        <li class="current"><a href="how-it-works.html">Chapter 2: How It Works</a></li>
         <li class="toc"><a href="index.html">Documentation</a></li>
+        <li class="prev"><a href="usage.html">Chapter 1: Usage</a></li>
         
-        <li class="next"><a href="usage.html">Chapter 2: Usage</a></li>
     </ul>
 </nav>
 <div id="docbody">
@@ -30,8 +30,30 @@
 <div id="TOC"
 ><ul
   ><li
+    ><a href="#conventions"
+      >Conventions</a
+      ></li
+    ><li
+    ><a href="#basic-mode"
+      >Basic Mode</a
+      ></li
+    ><li
+    ><a href="#recursive-mode"
+      >Recursive Mode</a
+      ><ul
+      ><li
+	><a href="#templates-behavior"
+	  >Templates behavior</a
+	  ></li
+	></ul
+      ></li
+    ><li
     ><a href="#index-pages"
       >Index pages</a
+      ></li
+    ><li
+    ><a href="#auto-clean"
+      >Auto-clean</a
       ></li
     ><li
     ><a href="#special-files"
@@ -56,10 +78,6 @@
 	></ul
       ></li
     ><li
-    ><a href="#auto-clean"
-      >Auto-clean</a
-      ></li
-    ><li
     ><a href="#templates"
       >Templates</a
       ><ul
@@ -80,7 +98,132 @@
     ></ul
   ></div
 >
-<h2 id="index-pages"
+<h2 id="conventions"
+><a href="#TOC"
+  >Conventions</a
+  ></h2
+><p
+>Edam tries to use reasonable defaults as the conventions for its use, however most of the defaults can be changed if necessary.</p
+><ul
+><li
+  >Source directory - current directory. Specify with <code
+    >-d</code
+    > flag.</li
+  ><li
+  >Output directory - same as source directory. Specify with <code
+    >-o</code
+    > flag.</li
+  ><li
+  >Templates directory - 'templates' dir in the source directory. Specify with <code
+    >-t</code
+    > flag.</li
+  ><li
+  >Output file name - basename of the source markdown file, with &quot;.html&quot;.</li
+  ><li
+  >Index file name - &quot;index.html&quot;</li
+  ></ul
+><p
+>Additionally, see the <a href="usage.html#options"
+  >Usage - Options</a
+  > section for further defaults that affect the generation of the output.</p
+><h2 id="basic-mode"
+><a href="#TOC"
+  >Basic Mode</a
+  ></h2
+><p
+>Edam takes all of the markdown-formatted <code
+  >.txt</code
+  > or <code
+  >.md</code
+  > in a Source directory:</p
+><pre
+><code
+  >getting-started.md
+howto.md
+readme.md
+usage.md
+</code
+  ></pre
+><p
+>And generates HTML pages for each one into the Output directory:</p
+><pre
+><code
+  >getting-started.html
+howto.html
+index.html
+usage.html
+</code
+  ></pre
+><p
+>The index (coming from 'index' or 'readme' file) will also contain a Table of Contents with links to each of the <code
+  >.html</code
+  > pages.</p
+><p
+>Each page will contain a set of navigation links to allow following the order of pages from one page to the next and back.</p
+><p
+>No default CSS file is included, so it is up to you to provide a <code
+  >style.css</code
+  > to style the content.</p
+><h2 id="recursive-mode"
+><a href="#TOC"
+  >Recursive Mode</a
+  ></h2
+><p
+>There is also a &quot;recursive&quot; mode, which will descend into subdirectories and apply the same logic. Invoke it by using the <code
+  >-r</code
+  > command-line flag or setting the <code
+  >recurseDepth</code
+  > option to something non-zero to specify the depth to descend, with a negative number indicating forever.</p
+><p
+>Source Directory:</p
+><pre
+><code
+  >my-project.md
+howto-guide/
+    01-getting-started.md
+    02-advanced.md
+</code
+  ></pre
+><p
+>Output Directory:</p
+><pre
+><code
+  >index.html
+howto-guide/
+    01-getting-started.html
+    02-advanced.html
+    index.html
+</code
+  ></pre
+><p
+>Additionally, each Table of Contents in an upper-level will contain links to the front-page of each of its subdirectories' contents. The navigation links in each subdirectory page will contain a set of breadcrumb links for going back up in the directory hierarchy.</p
+><p
+>Recursive mode will descend into each subdirectory of the Source directory. You can modify the <code
+  >recurseDirPattern</code
+  > option to set a regular expression of directories that should be matched.</p
+><p
+>Recursive mode will <em
+  >not</em
+  > descend into these directories by default:</p
+><ul
+><li
+  >'templates' - any directory named templates</li
+  ><li
+  >outputDir - the output directory itself.</li
+  ><li
+  >Any directory name that matches the <code
+    >recurseDirPatternIgnore</code
+    > option as a regular expression.</li
+  ></ul
+><p
+>Each subdirectory in the Source directory will produce a corresponding subdirectory in the output directory.</p
+><h3 id="templates-behavior"
+><a href="#TOC"
+  >Templates behavior</a
+  ></h3
+><p
+>Recursive mode will always use the Templates directory used by the top-level directory for each subdirectory. At this time it doesn't look for sub template directories. &gt;&gt; todo.txt</p
+><h2 id="index-pages"
 ><a href="#TOC"
   >Index pages</a
   ></h2
@@ -110,7 +253,7 @@
     >-O singleIndex=false</code
     ></li
   ><li
-  >Split out the Table of Contents into its own page: use <code
+  >Split out the Table of Contents and Index into separate pages: use <code
     >--separate-toc</code
     ></li
   ><li
@@ -118,6 +261,20 @@
     >--no-toc</code
     ></li
   ></ul
+><h2 id="auto-clean"
+><a href="#TOC"
+  >Auto-clean</a
+  ></h2
+><p
+>Edam uses a few template and intermediate files when generating the appropriate source to feed to pandoc. By default all of the template and intermediate files are &quot;auto-cleaned&quot;, that is, deleted, after use. However, you may want to use the <code
+  >--no-auto-clean</code
+  > flag once to generate the <code
+  >toc.conf</code
+  > and/or template files, and then customize them to your liking. They won't be overwritten if they already exist.</p
+><p
+>A typical use might be: use <code
+  >--no-auto-clean</code
+  >, customize one or two templates, and remove the rest of the generated files. Then run edam as normal and the other files will be autocleaned to keep your sourcebase clean.</p
 ><h2 id="special-files"
 ><a href="#TOC"
   >Special files</a
@@ -139,9 +296,19 @@
     ></dt
   ><dd
   ><p
-    >This uses a simple non-markdown text format to list the source files in the order they should appear in the generated HTML docs. This file will be generated if it does not exist. You can change the order of pages in the <code
+    >This uses a simple non-markdown text format to list the source files in the order they should appear in the generated HTML docs. You can change the order of pages in the <code
       >toc.conf</code
       >, but the contents must match the source files in the directory, otherwise a warning will be printed (e.g. file is added or removed).</p
+    ><p
+    >Format:</p
+    ><pre
+    ><code
+      > X:file.md:Title
+ ...
+</code
+      ></pre
+    ><p
+    >X is a number, although this number is ignored and the line ordering is used for the chapter order.</p
     ></dd
   ><dt
   ><code
@@ -161,7 +328,18 @@
     ></dt
   ><dd
   ><p
-    >A file containing Edam command-line arguments to process, one &quot;-flag [argument]&quot; per-line. You can use this in recursive mode to set options for a subdirectory context, and it will apply to all subdirectories.</p
+    >A file containing Edam command-line arguments to process, one <code
+      >&lt;flag&gt; [argument]</code
+      > per-line. You can use this in recursive mode to set options for a subdirectory context, and it will apply to all subdirectories.</p
+    ><p
+    >Example:</p
+    ><pre
+    ><code
+      > --separate-toc
+ -O pageFileName=docs-${index}
+ -O tocTitle=Documentation
+</code
+      ></pre
     ></dd
   ></dl
 ><p
@@ -187,6 +365,10 @@
 >If not specified, then the file name will be used as the title.</p
 ><p
 >The Title is used in linking to the document, and can be used in the output file name.</p
+><p
+>In <em
+  >Recursive mode</em
+  >, the title of an Index file is used in linking to the subdirectory it is in.</p
 ><h2 id="document-naming"
 ><a href="#TOC"
   >Document naming</a
@@ -239,20 +421,6 @@
   ></h3
 ><p
 >In recursive mode, each page in a subdirectory will also include the breadcrumb navigation links. Each link will go to the index page of a higher-level directory.</p
-><h2 id="auto-clean"
-><a href="#TOC"
-  >Auto-clean</a
-  ></h2
-><p
->Edam uses a few template and intermediate files when generating the appropriate source to feed to pandoc. By default all of the template and intermediate files are &quot;auto-cleaned&quot;, that is, deleted, after use. However, you may want to use the <code
-  >--no-auto-clean</code
-  > flag once to generate the <code
-  >toc.conf</code
-  > and/or template files, and then customize them to your liking. They won't be overwritten if they already exist.</p
-><p
->A typical use might be: use <code
-  >--no-auto-clean</code
-  >, customize one or two templates, and remove the rest of the generated files. Then run edam as normal and the other files will be autocleaned to keep your sourcebase clean.</p
 ><h2 id="templates"
 ><a href="#TOC"
   >Templates</a
@@ -499,10 +667,10 @@ $endif(crumbs)$
 
 <nav class="page bottom">
     <ul>
-        <li class="current"><a href="how-it-works.html">Chapter 1: How it Works</a></li>
+        <li class="current"><a href="how-it-works.html">Chapter 2: How It Works</a></li>
         <li class="toc"><a href="index.html">Documentation</a></li>
+        <li class="prev"><a href="usage.html">Chapter 1: Usage</a></li>
         
-        <li class="next"><a href="usage.html">Chapter 2: Usage</a></li>
     </ul>
 </nav>
 <nav class="breadcrumb bottom">

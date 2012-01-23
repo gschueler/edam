@@ -17,10 +17,10 @@
 
 <nav class="page top">
     <ul>
-        <li class="current"><a href="usage.html">Chapter 2: Usage</a></li>
+        <li class="current"><a href="usage.html">Chapter 1: Usage</a></li>
         <li class="toc"><a href="index.html">Documentation</a></li>
-        <li class="prev"><a href="how-it-works.html">Chapter 1: How it Works</a></li>
         
+        <li class="next"><a href="how-it-works.html">Chapter 2: How It Works</a></li>
     </ul>
 </nav>
 <div id="docbody">
@@ -41,7 +41,7 @@
 <pre
 ><code
   >edam.groovy [-h/--help] [-d &lt;basedir&gt;] [-t &lt;templatesdir&gt;] [-o &lt;outputdir&gt;]
-    [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
+    [-r] [--no-toc] [--no-nav] [--verbose] [--clean] [--separate-toc]
     [-O option=value [ -O ... ] ] [-V var=value ...] [ --variables &lt;propertiesfile&gt; ]
     [-x [ extra pandoc args .. ] ]
 </code
@@ -82,6 +82,14 @@
   ><dd
   ><p
     >The directory to write HTML files to. Defaults to the basedir.</p
+    ></dd
+  ><dt
+  ><code
+    >-r</code
+    ></dt
+  ><dd
+  ><p
+    >Recursively descend to subdirectories and apply Edam</p
     ></dd
   ><dt
   ><code
@@ -359,6 +367,16 @@
     ></dd
   ><dt
   ><code
+    >recurseDirPatternIgnore</code
+    ></dt
+  ><dd
+  ><p
+    >Regex to match dirs to ignore in recursive generation. Default: <code
+      >^\..*$</code
+      ></p
+    ></dd
+  ><dt
+  ><code
     >recurseDepth</code
     ></dt
   ><dd
@@ -373,10 +391,10 @@
 
 <nav class="page bottom">
     <ul>
-        <li class="current"><a href="usage.html">Chapter 2: Usage</a></li>
+        <li class="current"><a href="usage.html">Chapter 1: Usage</a></li>
         <li class="toc"><a href="index.html">Documentation</a></li>
-        <li class="prev"><a href="how-it-works.html">Chapter 1: How it Works</a></li>
         
+        <li class="next"><a href="how-it-works.html">Chapter 2: How It Works</a></li>
     </ul>
 </nav>
 <nav class="breadcrumb bottom">
